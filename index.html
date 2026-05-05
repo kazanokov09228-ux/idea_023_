@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>📱 Планер | Финансы + Задачи (Аккаунты)</title>
+  <title>📱 Планер | Финансы + Задачи (Только аккаунты)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -36,9 +36,41 @@
     @media (min-width: 640px) { .modal-card { max-width: 500px; } }
     .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; }
     @media (max-width: 640px) { .fab { display: flex; } .desktop-add-btn { display: none; } }
+    .main-app { display: none; }
+    .auth-container { max-width: 400px; margin: 2rem auto; background: white; border-radius: 2rem; padding: 2rem; box-shadow: 0 20px 35px -8px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
+
+<!-- Контейнер для авторизации (показывается, если нет пользователя) -->
+<div id="authContainer" class="px-4 py-8">
+  <div class="auth-container">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center mx-auto mb-3">
+        <span class="text-white text-3xl">✨</span>
+      </div>
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">Личный планер</h1>
+      <p class="text-gray-500 text-sm mt-2">Войдите или создайте аккаунт</p>
+    </div>
+    <div class="space-y-4">
+      <div><label class="text-sm font-medium text-gray-600">Email</label><input type="email" id="authEmail" class="w-full px-4 py-3 border rounded-xl"></div>
+      <div><label class="text-sm font-medium text-gray-600">Пароль</label><input type="password" id="authPassword" class="w-full px-4 py-3 border rounded-xl"></div>
+      <div id="authError" class="text-danger text-sm hidden"></div>
+      <button id="authLoginBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Войти</button>
+      <p class="text-center text-sm text-gray-500">Нет аккаунта? <button id="showSignupBtn" class="text-primary font-semibold">Зарегистрироваться</button></p>
+    </div>
+    <!-- Форма регистрации (скрыта по умолчанию) -->
+    <div id="signupForm" class="space-y-4 hidden mt-4 pt-4 border-t">
+      <div><label class="text-sm font-medium text-gray-600">Email</label><input type="email" id="signupEmail" class="w-full px-4 py-3 border rounded-xl"></div>
+      <div><label class="text-sm font-medium text-gray-600">Пароль</label><input type="password" id="signupPassword" class="w-full px-4 py-3 border rounded-xl"></div>
+      <button id="authSignupBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Зарегистрироваться</button>
+      <p class="text-center text-sm text-gray-500"><button id="showLoginBtn" class="text-primary font-semibold">← Вернуться ко входу</button></p>
+    </div>
+  </div>
+</div>
+
+<!-- Основное приложение (скрыто, пока нет пользователя) -->
+<div id="mainApp" class="main-app">
 <div class="max-w-6xl mx-auto px-4 py-5 md:py-7">
   <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
     <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center"><span class="text-white text-xl">✨</span></div><h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">Личный планер</h1></div>
@@ -47,8 +79,8 @@
       <button onclick="switchTab('todo')" id="tabTodoBtn" class="px-5 py-2 rounded-xl tab-inactive font-semibold text-sm touch-target">📋 Задачи</button>
     </div>
     <div class="flex gap-2">
-      <button id="loginBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target">🔐 Войти</button>
-      <button id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target hidden">🚪 Выйти</button>
+      <span id="userEmailSpan" class="text-sm bg-white/70 backdrop-blur-sm border px-3 py-2 rounded-xl hidden md:inline-flex items-center">👤 </span>
+      <button id="logoutBtnMain" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target">🚪 Выйти</button>
       <button onclick="clearAllData()" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target">🗑 Сброс</button>
     </div>
   </div>
@@ -104,20 +136,6 @@
     <div class="fab" onclick="openAddTodoModal()">+</div>
   </div>
 </div>
-
-<!-- Модалка авторизации (упрощённая, без отдельного linkingPrompt) -->
-<div id="authModal" class="modal-overlay hidden">
-  <div class="modal-card">
-    <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Вход / Регистрация</h2>
-    <div id="authForm" class="space-y-4">
-      <div><label class="text-sm font-medium text-gray-600">Email</label><input type="email" id="authEmail" class="w-full px-4 py-3 border rounded-xl"></div>
-      <div><label class="text-sm font-medium text-gray-600">Пароль</label><input type="password" id="authPassword" class="w-full px-4 py-3 border rounded-xl"></div>
-      <div id="authError" class="text-danger text-sm hidden"></div>
-      <button id="authActionBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Войти</button>
-      <p class="text-center text-sm text-gray-500"><span id="toggleAuthText">Нет аккаунта?</span> <button id="toggleAuthModeBtn" class="text-primary font-semibold">Создать</button></p>
-    </div>
-    <div class="mt-4 text-center"><button id="closeAuthModal" class="text-gray-500 text-sm">Закрыть</button></div>
-  </div>
 </div>
 
 <!-- Модалка задачи -->
@@ -132,7 +150,11 @@
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ) ====================
+  import { initializeApp } from "firebase/app";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, query, onSnapshot, writeBatch, getDocs } from "firebase/firestore";
+
+  // Firebase config (замените на свои данные)
   const firebaseConfig = {
     apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
     authDomain: "project-5701820354067340611.firebaseapp.com",
@@ -141,100 +163,93 @@
     messagingSenderId: "804935519387",
     appId: "1:804935519387:web:d71bf1995d41d7a9ff8a3e"
   };
-  
-  import { initializeApp } from "firebase/app";
-  import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, linkWithCredential, EmailAuthProvider, signOut as firebaseSignOut } from "firebase/auth";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, query, onSnapshot, writeBatch, getDocs } from "firebase/firestore";
-  
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  
+
   let currentUser = null;
   let unsubscribeTransactions = null;
   let unsubscribeTodos = null;
   let allTransactions = [];
   let allTodos = [];
-  
+
   let currentMonth = new Date().toISOString().slice(0,7);
   let transactionType = 'expense';
   let pieChart, lineChart;
   let todoSort = { field: 'createdAt', order: 'asc' };
-  
-  // Вспомогательные функции
+
+  // UI элементы
+  const authContainer = document.getElementById('authContainer');
+  const mainApp = document.getElementById('mainApp');
+  const userEmailSpan = document.getElementById('userEmailSpan');
+  const logoutBtn = document.getElementById('logoutBtnMain');
+
   function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
   function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
-  
-  // Модалка авторизации
-  function showAuthModal() { document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').style.display = 'flex'; }
-  function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').style.display = 'none'; document.getElementById('authError').classList.add('hidden'); }
-  
-  let currentAuthMode = false; // false=login, true=signup
-  function updateAuthUI() {
-    if(currentAuthMode) {
-      document.getElementById('authModalTitle').innerText = 'Создать аккаунт';
-      document.getElementById('authActionBtn').innerText = 'Зарегистрироваться';
-      document.getElementById('toggleAuthText').innerHTML = 'Уже есть аккаунт?';
-      document.getElementById('toggleAuthModeBtn').innerText = 'Войти';
-    } else {
-      document.getElementById('authModalTitle').innerText = 'Вход в аккаунт';
-      document.getElementById('authActionBtn').innerText = 'Войти';
-      document.getElementById('toggleAuthText').innerHTML = 'Нет аккаунта?';
-      document.getElementById('toggleAuthModeBtn').innerText = 'Создать';
-    }
-  }
-  document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { currentAuthMode = !currentAuthMode; updateAuthUI(); });
-  document.getElementById('closeAuthModal').addEventListener('click', hideAuthModal);
-  document.getElementById('loginBtn').addEventListener('click', () => { currentAuthMode = false; updateAuthUI(); showAuthModal(); });
-  
-  async function handleAuth() {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
-    const errorDiv = document.getElementById('authError');
-    if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
-    errorDiv.classList.add('hidden');
-    
+
+  // Авторизация
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+  const authError = document.getElementById('authError');
+  const authLoginBtn = document.getElementById('authLoginBtn');
+  const showSignupBtn = document.getElementById('showSignupBtn');
+  const signupForm = document.getElementById('signupForm');
+  const signupEmail = document.getElementById('signupEmail');
+  const signupPassword = document.getElementById('signupPassword');
+  const authSignupBtn = document.getElementById('authSignupBtn');
+  const showLoginBtn = document.getElementById('showLoginBtn');
+
+  showSignupBtn.addEventListener('click', () => {
+    document.querySelector('.auth-container > .space-y-4').classList.add('hidden');
+    signupForm.classList.remove('hidden');
+  });
+  showLoginBtn.addEventListener('click', () => {
+    signupForm.classList.add('hidden');
+    document.querySelector('.auth-container > .space-y-4').classList.remove('hidden');
+  });
+
+  async function handleLogin() {
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    if(!email || !password) { authError.innerText = 'Заполните поля'; authError.classList.remove('hidden'); return; }
+    authError.classList.add('hidden');
     try {
-      if(currentAuthMode) {
-        // Регистрация
-        if(auth.currentUser && auth.currentUser.isAnonymous) {
-          // Есть анонимный пользователь - пытаемся привязать
-          const credential = EmailAuthProvider.credential(email, password);
-          await linkWithCredential(auth.currentUser, credential);
-          showToast('Анонимные данные привязаны к новому аккаунту');
-        } else {
-          // Обычная регистрация (создаст нового пользователя, заменив текущего)
-          await createUserWithEmailAndPassword(auth, email, password);
-          showToast('Аккаунт создан');
-        }
-        hideAuthModal();
-      } else {
-        // Вход
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast('Добро пожаловать');
-        hideAuthModal();
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      showToast('Добро пожаловать!');
     } catch(err) {
-      if(err.code === 'auth/credential-already-in-use') {
-        errorDiv.innerText = 'Этот email уже зарегистрирован. Попробуйте войти.';
-      } else if(err.code === 'auth/email-already-in-use') {
-        errorDiv.innerText = 'Email уже используется.';
-      } else {
-        errorDiv.innerText = err.message;
-      }
-      errorDiv.classList.remove('hidden');
+      authError.innerText = err.message;
+      authError.classList.remove('hidden');
     }
   }
-  document.getElementById('authActionBtn').addEventListener('click', handleAuth);
-  
-  async function signOut() { await firebaseSignOut(auth); showToast('Вы вышли'); }
-  document.getElementById('logoutBtn').addEventListener('click', signOut);
-  
-  // Очистка данных
+  authLoginBtn.addEventListener('click', handleLogin);
+
+  async function handleSignup() {
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+    if(!email || !password) { authError.innerText = 'Заполните поля'; authError.classList.remove('hidden'); return; }
+    authError.classList.add('hidden');
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      showToast('Аккаунт создан!');
+    } catch(err) {
+      authError.innerText = err.message;
+      authError.classList.remove('hidden');
+    }
+  }
+  authSignupBtn.addEventListener('click', handleSignup);
+
+  async function handleLogout() {
+    await signOut(auth);
+    showToast('Вы вышли');
+  }
+  logoutBtn.addEventListener('click', handleLogout);
+
+  // Очистка данных пользователя
   async function clearAllData() {
-    if(!currentUser || !confirm('Удалить все данные?')) return;
+    if(!currentUser || !confirm('Удалить все свои финансы и задачи?')) return;
     const batch = writeBatch(db);
     (await getDocs(collection(db, "users", currentUser.uid, "transactions"))).forEach(doc => batch.delete(doc.ref));
     (await getDocs(collection(db, "users", currentUser.uid, "todos"))).forEach(doc => batch.delete(doc.ref));
@@ -242,10 +257,10 @@
     showToast('Все данные удалены');
   }
   window.clearAllData = clearAllData;
-  
+
   // Финансы
   async function addTransaction(desc, amount, type, category) {
-    if(!currentUser) { showToast('Сначала войдите'); return; }
+    if(!currentUser) return;
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
       description: desc, amount, type, category, date: new Date().toISOString().slice(0,10), createdAt: Date.now()
     });
@@ -253,7 +268,7 @@
   }
   async function deleteTransaction(id) { if(confirm('Удалить?')) await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id)); showToast('Удалено'); }
   window.deleteTransaction = deleteTransaction;
-  
+
   function getFilteredTx() { return allTransactions.filter(tx=>tx.date.startsWith(currentMonth)); }
   function refreshFinanceUI() {
     let filtered = getFilteredTx();
@@ -278,7 +293,7 @@
     let lineCtx=document.getElementById('lineChart').getContext('2d'); if(lineChart) lineChart.destroy();
     lineChart=new Chart(lineCtx,{type:'line',data:{labels:last7.map(d=>d.label),datasets:[{label:'Доход',data:last7.map(d=>d.inc),borderColor:'#10B981',tension:0.3,fill:true},{label:'Расход',data:last7.map(d=>d.exp),borderColor:'#F43F5E',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false}});
   }
-  
+
   document.getElementById('transactionForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     let desc=document.getElementById('descInput').value.trim();
@@ -294,7 +309,7 @@
     if(type==='expense'){ exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-danger text-white'; inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
     else { inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white'; exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
   };
-  
+
   // Задачи
   async function addOrUpdateTodo(id, text, description, priority, category, dueDate, date) {
     if(!currentUser) return;
@@ -311,7 +326,7 @@
   }
   window.deleteTodo = deleteTodo;
   window.toggleTodoStatus = toggleTodoStatus;
-  
+
   function getTodoDate() { return document.getElementById('todoDatePicker').value; }
   function getFilteredTodoList() {
     let date=getTodoDate(); if(!date) return [];
@@ -347,7 +362,7 @@
         return `<div class="todo-card-mobile"><div class="flex items-start gap-3"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6"><div class="flex-1"><div class="font-semibold ${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}</div>${t.description?`<div class="text-xs text-gray-500">${escapeHtml(t.description)}</div>`:''}<div class="flex flex-wrap gap-2 mt-2"><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span>${t.category?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>`:''}${t.dueDate?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue?'text-danger font-semibold':''}">📅 ${formatDate(t.dueDate)}${isOverdue?' ⚠️':''}</span>`:''}</div></div><div><button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button></div></div></div>`;
       }).join('');
     } else {
-      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></table></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
+      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
       let activeTh=document.getElementById(`th-${todoSort.field}`);
       if(activeTh) activeTh.classList.add(todoSort.order==='asc'?'sort-asc':'sort-desc');
@@ -361,39 +376,46 @@
   document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{ e.preventDefault(); let date=getTodoDate(); if(!date) return showToast('Выберите дату'); let id=document.getElementById('editTodoId').value; let text=document.getElementById('todoText').value.trim(); if(!text) return; let priority=document.getElementById('todoPriority').value; let category=document.getElementById('todoCategory').value.trim(); let dueDate=document.getElementById('todoDueDate').value; let description=document.getElementById('todoDescription').value.trim(); await addOrUpdateTodo(id,text,description,priority,category,dueDate,date); closeModal(); showToast('Задача сохранена'); });
   window.setTodayDate = function(){ document.getElementById('todoDatePicker').value=new Date().toISOString().split('T')[0]; refreshTodoUI(); };
   window.switchTab = function(tab){ let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn'); if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } else { f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); } closeModal(); };
-  
-  function startDataListeners(){
+
+  function startDataListeners() {
     if(!currentUser) return;
     if(unsubscribeTransactions) unsubscribeTransactions();
     if(unsubscribeTodos) unsubscribeTodos();
     unsubscribeTransactions = onSnapshot(query(collection(db, "users", currentUser.uid, "transactions")), snap=>{ allTransactions=snap.docs.map(d=>({id:d.id,...d.data()})); refreshFinanceUI(); });
     unsubscribeTodos = onSnapshot(query(collection(db, "users", currentUser.uid, "todos")), snap=>{ allTodos=snap.docs.map(d=>({id:d.id,...d.data()})); refreshTodoUI(); });
   }
-  
-  onAuthStateChanged(auth, async (user) => {
+
+  onAuthStateChanged(auth, (user) => {
     if(user) {
       currentUser = user;
-      document.getElementById('logoutBtn').classList.remove('hidden');
-      document.getElementById('loginBtn').classList.add('hidden');
+      authContainer.style.display = 'none';
+      mainApp.style.display = 'block';
+      userEmailSpan.innerHTML = `👤 ${user.email}`;
       startDataListeners();
     } else {
       currentUser = null;
-      document.getElementById('logoutBtn').classList.add('hidden');
-      document.getElementById('loginBtn').classList.remove('hidden');
+      authContainer.style.display = 'block';
+      mainApp.style.display = 'none';
       if(unsubscribeTransactions) unsubscribeTransactions();
       if(unsubscribeTodos) unsubscribeTodos();
       allTransactions = [];
       allTodos = [];
       refreshFinanceUI();
       refreshTodoUI();
-      // Запускаем анонимный вход при отсутствии пользователя
-      try {
-        await signInAnonymously(auth);
-      } catch(e) { console.error(e); }
+      // Очищаем поля входа
+      authEmail.value = '';
+      authPassword.value = '';
+      signupEmail.value = '';
+      signupPassword.value = '';
+      authError.classList.add('hidden');
+      // Показываем форму входа, скрываем регистрацию
+      document.querySelector('.auth-container > .space-y-4').classList.remove('hidden');
+      signupForm.classList.add('hidden');
     }
   });
-  
+
   window.addEventListener('DOMContentLoaded', () => {
+    // Инициализация UI, но без анонимного входа
     document.getElementById('monthPicker').value = currentMonth;
     document.getElementById('todoDatePicker').value = new Date().toISOString().split('T')[0];
     window.setType('expense');
@@ -403,6 +425,9 @@
     document.getElementById('todoDatePicker').addEventListener('change', refreshTodoUI);
     document.getElementById('monthPicker').addEventListener('change', e=>{ currentMonth=e.target.value; refreshFinanceUI(); });
     window.switchTab('finance');
+    // Показываем контейнер авторизации, приложение скрыто
+    authContainer.style.display = 'block';
+    mainApp.style.display = 'none';
   });
 </script>
 </body>
