@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>📱 Планер | Финансы + Задачи (Firebase с Аккаунтами)</title>
-  
+  <title>📱 Планер | Финансы + Задачи (Аккаунты)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  
   <script type="importmap">
     {
       "imports": {
@@ -18,151 +16,86 @@
       }
     }
   </script>
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { 'sans': ['Inter', 'system-ui', 'sans-serif'] },
-          colors: { primary: '#4F46E5', secondary: '#C084FC', success: '#10B981', danger: '#F43F5E' },
-          animation: { 'fade-in': 'fadeIn 0.2s ease-out' },
-          keyframes: { fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } } }
-        }
-      }
-    }
-  </script>
-  
   <style>
     * { -webkit-tap-highlight-color: transparent; }
     body { background: radial-gradient(circle at 10% 20%, #F0F4FF 0%, #F9F6FE 100%); font-family: 'Inter', sans-serif; }
-    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.5); border-radius: 1.5rem; box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.05); }
-    .glass-heavy { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(2px); }
-    .btn-primary-grad { background: linear-gradient(115deg, #4F46E5, #A855F7); transition: transform 0.1s, opacity 0.2s; }
-    .btn-primary-grad:active { transform: scale(0.97); }
-    .tab-active { background: linear-gradient(115deg, #4F46E5, #A855F7); color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.35); }
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-radius: 1.5rem; box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.05); }
+    .btn-primary-grad { background: linear-gradient(115deg, #4F46E5, #A855F7); }
+    .tab-active { background: linear-gradient(115deg, #4F46E5, #A855F7); color: white; }
     .tab-inactive { background: rgba(255,255,255,0.6); color: #4b5563; }
-    .priority-high { background: #FFE4E6; color: #E11D48; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 40px; font-size: 0.7rem; display: inline-block; }
-    .priority-medium { background: #FEF3C7; color: #D97706; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 40px; font-size: 0.7rem; }
-    .priority-low { background: #E0F2FE; color: #0284C7; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 40px; font-size: 0.7rem; }
-    .todo-card-mobile { background: white; border-radius: 1.25rem; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; transition: background 0.1s; }
-    .todo-card-mobile:active { background: #F9FAFB; }
-    .filter-scroll { overflow-x: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; white-space: nowrap; display: flex; flex-wrap: nowrap; gap: 0.5rem; padding-bottom: 0.5rem; }
-    .filter-scroll::-webkit-scrollbar { height: 3px; }
+    .priority-high { background: #FFE4E6; color: #E11D48; }
+    .priority-medium { background: #FEF3C7; color: #D97706; }
+    .priority-low { background: #E0F2FE; color: #0284C7; }
+    .todo-card-mobile { background: white; border-radius: 1.25rem; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .filter-scroll { overflow-x: auto; display: flex; gap: 0.5rem; padding-bottom: 0.5rem; }
     .touch-target { min-height: 48px; min-width: 48px; display: inline-flex; align-items: center; justify-content: center; }
-    input, select, textarea, button { font-size: 16px; }
-    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 10px 20px; border-radius: 60px; font-size: 0.85rem; z-index: 200; white-space: nowrap; backdrop-filter: blur(8px); animation: slideUp 0.2s ease-out; font-weight: 500; pointer-events: none; }
+    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 10px 20px; border-radius: 60px; z-index: 200; white-space: nowrap; animation: slideUp 0.2s; }
     @keyframes slideUp { from { opacity: 0; bottom: 70px; } to { opacity: 1; bottom: 90px; } }
-    .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }
+    .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 50; }
     .modal-card { background: white; max-width: 90vw; width: 100%; margin: 1rem; border-radius: 2rem; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
     @media (min-width: 640px) { .modal-card { max-width: 500px; } }
-    .todo-table th { cursor: pointer; user-select: none; padding: 12px 8px; background: #F9FAFB; }
-    .todo-table td { padding: 12px 8px; border-bottom: 1px solid #F1F5F9; }
-    .sort-asc::after { content: ' ↑'; color: #4F46E5; font-weight: bold; }
-    .sort-desc::after { content: ' ↓'; color: #4F46E5; font-weight: bold; }
-    .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; box-shadow: 0 10px 25px -5px rgba(79,70,229,0.5); z-index: 40; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; }
-    .fab:active { transform: scale(0.92); }
+    .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; }
     @media (max-width: 640px) { .fab { display: flex; } .desktop-add-btn { display: none; } }
-    .auth-container { transition: all 0.3s ease; }
   </style>
 </head>
 <body>
-
 <div class="max-w-6xl mx-auto px-4 py-5 md:py-7">
-  
   <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-    <div class="flex items-center gap-2">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-md">
-        <span class="text-white text-xl">✨</span>
-      </div>
-      <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">Личный планер</h1>
+    <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center"><span class="text-white text-xl">✨</span></div><h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">Личный планер</h1></div>
+    <div class="flex gap-1 bg-white/60 backdrop-blur-md rounded-2xl p-1">
+      <button onclick="switchTab('finance')" id="tabFinanceBtn" class="px-5 py-2 rounded-xl tab-active font-semibold text-sm touch-target">💰 Финансы</button>
+      <button onclick="switchTab('todo')" id="tabTodoBtn" class="px-5 py-2 rounded-xl tab-inactive font-semibold text-sm touch-target">📋 Задачи</button>
     </div>
-    <div class="flex gap-1 bg-white/60 backdrop-blur-md rounded-2xl p-1 shadow-sm">
-      <button onclick="switchTab('finance')" id="tabFinanceBtn" class="px-5 py-2 rounded-xl tab-active transition-all font-semibold text-sm touch-target">💰 Финансы</button>
-      <button onclick="switchTab('todo')" id="tabTodoBtn" class="px-5 py-2 rounded-xl tab-inactive transition-all font-semibold text-sm text-gray-700 touch-target">📋 Задачи</button>
-    </div>
-    <button onclick="signOut()" id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border border-white/50 text-gray-600 px-4 py-2 rounded-xl active:scale-95 transition touch-target hidden">🚪 Выйти</button>
-  </div>
-
-  <!-- Модалка входа/регистрации -->
-  <div id="authModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 transition-all">
-    <div class="modal-card shadow-2xl">
-      <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Добро пожаловать!</h2>
-      <div id="authForm" class="space-y-4">
-        <div><label class="text-sm font-medium text-gray-600 mb-1 block">Email</label><input type="email" id="authEmail" class="w-full px-4 py-3 border border-gray-200 rounded-xl"></div>
-        <div><label class="text-sm font-medium text-gray-600 mb-1 block">Пароль</label><input type="password" id="authPassword" class="w-full px-4 py-3 border border-gray-200 rounded-xl"></div>
-        <div id="authError" class="text-danger text-sm hidden"></div>
-        <button id="authActionBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold shadow-md active:scale-[0.98] transition touch-target">Войти</button>
-        <p class="text-center text-sm text-gray-500 mt-2">
-          <span id="toggleAuthText">Нет аккаунта?</span>
-          <button id="toggleAuthModeBtn" class="text-primary font-semibold ml-1">Создать</button>
-        </p>
-      </div>
-      <div id="linkingPrompt" class="hidden space-y-4">
-        <p class="text-gray-700 text-center">У вас есть анонимные данные. Хотите связать их с новым аккаунтом?</p>
-        <div class="flex gap-3">
-          <button id="linkAccountBtn" class="flex-1 btn-primary-grad text-white py-2 rounded-xl">Да, связать</button>
-          <button id="startFreshBtn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-xl">Нет, начать заново</button>
-        </div>
-      </div>
+    <div class="flex gap-2">
+      <button id="loginBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target">🔐 Войти</button>
+      <button id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target hidden">🚪 Выйти</button>
+      <button onclick="clearAllData()" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target">🗑 Сброс</button>
     </div>
   </div>
 
-  <!-- Вкладка Финансы -->
   <div id="financeTab" class="animate-fade-in">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
-      <div class="glass-card p-4 flex justify-between items-center"><div><p class="text-gray-500 text-sm">Баланс</p><p class="text-2xl font-bold" id="balanceDisplay">0 ₽</p></div><span class="text-3xl">💰</span></div>
-      <div class="glass-card p-4 flex justify-between items-center"><div><p class="text-gray-500 text-sm">Доходы</p><p class="text-2xl font-bold text-success" id="incomeDisplay">0 ₽</p></div><span class="text-3xl">📈</span></div>
-      <div class="glass-card p-4 flex justify-between items-center"><div><p class="text-gray-500 text-sm">Расходы</p><p class="text-2xl font-bold text-danger" id="expenseDisplay">0 ₽</p></div><span class="text-3xl">📉</span></div>
+      <div class="glass-card p-4 flex justify-between"><div><p class="text-gray-500 text-sm">Баланс</p><p class="text-2xl font-bold" id="balanceDisplay">0 ₽</p></div><span class="text-3xl">💰</span></div>
+      <div class="glass-card p-4 flex justify-between"><div><p class="text-gray-500 text-sm">Доходы</p><p class="text-2xl font-bold text-success" id="incomeDisplay">0 ₽</p></div><span class="text-3xl">📈</span></div>
+      <div class="glass-card p-4 flex justify-between"><div><p class="text-gray-500 text-sm">Расходы</p><p class="text-2xl font-bold text-danger" id="expenseDisplay">0 ₽</p></div><span class="text-3xl">📉</span></div>
     </div>
-    
-    <div class="flex justify-between items-center bg-white/50 p-3 rounded-xl mb-6"><span class="text-sm font-medium">📅 Месяц</span><input type="month" id="monthPicker" class="px-4 py-2 border-0 bg-white/80 rounded-xl shadow-sm focus:ring-2 focus:ring-primary"></div>
-    
+    <div class="flex justify-between items-center bg-white/50 p-3 rounded-xl mb-6"><span class="text-sm font-medium">📅 Месяц</span><input type="month" id="monthPicker" class="px-4 py-2 border-0 bg-white/80 rounded-xl"></div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-      <div class="glass-heavy p-4 rounded-2xl"><h2 class="font-semibold mb-2">🗂 Расходы по категориям</h2><div class="h-56 w-full"><canvas id="pieChart"></canvas></div><p id="noPieData" class="text-center text-gray-400 hidden text-sm mt-2">Нет данных</p></div>
-      <div class="glass-heavy p-4 rounded-2xl"><h2 class="font-semibold mb-2">📈 Динамика (7d)</h2><div class="h-56 w-full"><canvas id="lineChart"></canvas></div></div>
+      <div class="glass-heavy p-4 rounded-2xl bg-white/80"><h2 class="font-semibold mb-2">🗂 Расходы по категориям</h2><div class="h-56 w-full"><canvas id="pieChart"></canvas></div><p id="noPieData" class="text-center text-gray-400 hidden text-sm mt-2">Нет данных</p></div>
+      <div class="glass-heavy p-4 rounded-2xl bg-white/80"><h2 class="font-semibold mb-2">📈 Динамика (7d)</h2><div class="h-56 w-full"><canvas id="lineChart"></canvas></div></div>
     </div>
-
     <div class="max-w-xl mx-auto mb-8">
-      <div class="glass-heavy p-5 rounded-2xl">
+      <div class="bg-white/80 p-5 rounded-2xl">
         <h2 class="text-lg font-semibold mb-3">✚ Новая операция</h2>
         <div class="flex gap-2 mb-4">
-          <button onclick="setType('expense')" id="btnExpense" class="flex-1 py-3 rounded-xl font-semibold shadow-sm bg-danger text-white active:scale-95 touch-target">Расход</button>
-          <button onclick="setType('income')" id="btnIncome" class="flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700 active:scale-95 touch-target">Доход</button>
+          <button onclick="setType('expense')" id="btnExpense" class="flex-1 py-3 rounded-xl font-semibold shadow-sm bg-danger text-white">Расход</button>
+          <button onclick="setType('income')" id="btnIncome" class="flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700">Доход</button>
         </div>
         <form id="transactionForm" class="space-y-3">
-          <input type="text" id="descInput" placeholder="Описание" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white/80">
+          <input type="text" id="descInput" placeholder="Описание" required class="w-full px-4 py-3 border rounded-xl bg-white">
           <div class="flex flex-col sm:flex-row gap-3">
-            <input type="number" id="amountInput" placeholder="Сумма" required step="0.01" min="0.01" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl">
-            <select id="categorySelect" class="flex-1 px-3 py-3 border border-gray-200 rounded-xl bg-white text-sm">
+            <input type="number" id="amountInput" placeholder="Сумма" required step="0.01" min="0.01" class="flex-1 px-4 py-3 border rounded-xl">
+            <select id="categorySelect" class="flex-1 px-3 py-3 border rounded-xl bg-white text-sm">
               <option value="Еда">🍔 Еда</option><option value="Транспорт">🚗 Транспорт</option><option value="Развлечения">🎉 Развлечения</option>
               <option value="Коммунальные">🏠 Коммунальные</option><option value="Здоровье">💊 Здоровье</option><option value="Другое">📦 Другое</option>
             </select>
           </div>
-          <button type="submit" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold shadow-md active:scale-[0.98] transition touch-target">➕ Добавить</button>
+          <button type="submit" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold shadow-md">➕ Добавить</button>
         </form>
       </div>
     </div>
-    
-    <div class="glass-heavy p-5 rounded-2xl">
-      <h2 class="text-lg font-semibold mb-3">📋 Последние операции</h2>
-      <div id="transactionList" class="divide-y divide-gray-100"></div>
-    </div>
+    <div class="bg-white/80 p-5 rounded-2xl"><h2 class="text-lg font-semibold mb-3">📋 Последние операции</h2><div id="transactionList" class="divide-y divide-gray-100"></div></div>
   </div>
 
-  <!-- Вкладка Ежедневник -->
   <div id="todoTab" class="hidden animate-fade-in">
-    <div class="glass-heavy p-4 rounded-2xl">
+    <div class="bg-white/80 p-4 rounded-2xl">
       <div class="filter-scroll mb-4">
-        <button onclick="setTodayDate()" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap active:scale-95 touch-target">📅 Сегодня</button>
-        <input type="date" id="todoDatePicker" class="px-3 py-2 border border-gray-200 rounded-xl bg-white/80 text-sm">
-        <input type="text" id="searchInput" placeholder="🔍 Поиск" class="px-4 py-2 border border-gray-200 rounded-xl bg-white/80 w-32 text-sm">
-        <select id="filterPriority" class="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm">
-          <option value="all">Все приоритеты</option><option value="high">🔴 Высокий</option><option value="medium">🟡 Средний</option><option value="low">🔵 Низкий</option>
-        </select>
-        <select id="filterStatus" class="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm">
-          <option value="all">Все статусы</option><option value="active">Активные</option><option value="completed">Завершённые</option>
-        </select>
-        <button onclick="openAddTodoModal()" class="desktop-add-btn bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-xl font-semibold shadow-md whitespace-nowrap touch-target">➕ Новая задача</button>
+        <button onclick="setTodayDate()" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📅 Сегодня</button>
+        <input type="date" id="todoDatePicker" class="px-3 py-2 border rounded-xl bg-white text-sm">
+        <input type="text" id="searchInput" placeholder="🔍 Поиск" class="px-4 py-2 border rounded-xl bg-white w-32 text-sm">
+        <select id="filterPriority" class="px-3 py-2 border rounded-xl bg-white text-sm"><option value="all">Все приоритеты</option><option value="high">🔴 Высокий</option><option value="medium">🟡 Средний</option><option value="low">🔵 Низкий</option></select>
+        <select id="filterStatus" class="px-3 py-2 border rounded-xl bg-white text-sm"><option value="all">Все статусы</option><option value="active">Активные</option><option value="completed">Завершённые</option></select>
+        <button onclick="openAddTodoModal()" class="desktop-add-btn bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-xl font-semibold shadow-md">➕ Новая задача</button>
       </div>
       <div id="todoListContainer"></div>
     </div>
@@ -170,37 +103,44 @@
   </div>
 </div>
 
-<!-- Модальное окно задачи -->
-<div id="todoModal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50 transition-all">
-  <div class="modal-card shadow-2xl">
-    <h2 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-4">Новая задача</h2>
-    <form id="todoFormModal" class="space-y-4">
-      <input type="hidden" id="editTodoId">
-      <div><label class="text-sm font-medium text-gray-600 mb-1 block">Название *</label><input type="text" id="todoText" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"></div>
-      <div><label class="text-sm font-medium text-gray-600 mb-1 block">Описание</label><textarea id="todoDescription" rows="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl"></textarea></div>
-      <div class="flex flex-col sm:flex-row gap-3">
-        <div class="flex-1"><label class="text-sm font-medium">Приоритет</label><select id="todoPriority" class="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl"><option value="medium">🟡 Средний</option><option value="high">🔴 Высокий</option><option value="low">🔵 Низкий</option></select></div>
-        <div class="flex-1"><label class="text-sm font-medium">Категория</label><input type="text" id="todoCategory" placeholder="Работа, личное" class="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-xl"></div>
-      </div>
-      <div><label class="text-sm font-medium">Дедлайн</label><input type="date" id="todoDueDate" class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl"></div>
-      <div class="flex justify-end gap-3 pt-2">
-        <button type="button" onclick="closeModal()" class="px-5 py-2 border border-gray-300 rounded-xl text-gray-700 active:bg-gray-100 touch-target">Отмена</button>
-        <button type="submit" class="px-5 py-2 btn-primary-grad text-white rounded-xl font-semibold shadow touch-target">Сохранить</button>
-      </div>
+<div id="authModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Вход / Регистрация</h2>
+    <div id="authForm" class="space-y-4">
+      <div><label class="text-sm font-medium text-gray-600">Email</label><input type="email" id="authEmail" class="w-full px-4 py-3 border rounded-xl"></div>
+      <div><label class="text-sm font-medium text-gray-600">Пароль</label><input type="password" id="authPassword" class="w-full px-4 py-3 border rounded-xl"></div>
+      <div id="authError" class="text-danger text-sm hidden"></div>
+      <button id="authActionBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Войти</button>
+      <p class="text-center text-sm text-gray-500"><span id="toggleAuthText">Нет аккаунта?</span> <button id="toggleAuthModeBtn" class="text-primary font-semibold">Создать</button></p>
+    </div>
+    <div id="linkingPrompt" class="hidden space-y-4">
+      <p class="text-gray-700 text-center">У вас есть анонимные данные. Связать с новым аккаунтом?</p>
+      <div class="flex gap-3"><button id="linkAccountBtn" class="flex-1 btn-primary-grad text-white py-2 rounded-xl">Да, связать</button><button id="startFreshBtn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-xl">Нет, начать заново</button></div>
+    </div>
+    <div class="mt-4 text-center"><button id="closeAuthModal" class="text-gray-500 text-sm">Закрыть</button></div>
+  </div>
+</div>
+
+<div id="todoModal" class="modal-overlay hidden">
+  <div class="modal-card"><h2 id="modalTitle" class="text-2xl font-bold mb-4">Новая задача</h2>
+    <form id="todoFormModal" class="space-y-4"><input type="hidden" id="editTodoId"><input type="text" id="todoText" required placeholder="Название" class="w-full px-4 py-3 border rounded-xl"><textarea id="todoDescription" rows="2" placeholder="Описание" class="w-full px-4 py-3 border rounded-xl"></textarea>
+      <div class="flex flex-col sm:flex-row gap-3"><select id="todoPriority" class="flex-1 px-3 py-2.5 border rounded-xl"><option value="medium">🟡 Средний</option><option value="high">🔴 Высокий</option><option value="low">🔵 Низкий</option></select><input type="text" id="todoCategory" placeholder="Категория" class="flex-1 px-3 py-2.5 border rounded-xl"></div>
+      <input type="date" id="todoDueDate" class="w-full px-4 py-2.5 border rounded-xl">
+      <div class="flex justify-end gap-3"><button type="button" onclick="closeModal()" class="px-5 py-2 border rounded-xl">Отмена</button><button type="submit" class="px-5 py-2 btn-primary-grad text-white rounded-xl">Сохранить</button></div>
     </form>
   </div>
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG (ВСТАВЬТЕ ВАШИ ДАННЫЕ) ====================
+  // ==================== FIREBASE CONFIG ====================
   const firebaseConfig = {
-  apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
-  authDomain: "project-5701820354067340611.firebaseapp.com",
-  projectId: "project-5701820354067340611",
-  storageBucket: "project-5701820354067340611.firebasestorage.app",
-  messagingSenderId: "804935519387",
-  appId: "1:804935519387:web:d71bf1995d41d7a9ff8a3e"
-};
+    apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
+    authDomain: "project-5701820354067340611.firebaseapp.com",
+    projectId: "project-5701820354067340611",
+    storageBucket: "project-5701820354067340611.firebasestorage.app",
+    messagingSenderId: "804935519387",
+    appId: "1:804935519387:web:d71bf1995d41d7a9ff8a3e"
+  };
   
   import { initializeApp } from "firebase/app";
   import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, linkWithCredential, EmailAuthProvider, signOut as firebaseSignOut, fetchSignInMethodsForEmail } from "firebase/auth";
@@ -215,23 +155,25 @@
   let unsubscribeTodos = null;
   let allTransactions = [];
   let allTodos = [];
-  let isLinkingInProgress = false;
+  let isLinking = false;
+  let pendingEmail = "", pendingPassword = "";
   
   let currentMonth = new Date().toISOString().slice(0,7);
   let transactionType = 'expense';
   let pieChart, lineChart;
   let todoSort = { field: 'createdAt', order: 'asc' };
   
-  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
   function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
+  function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
   
-  // --- UI ---
-  function showAuthModal() { document.getElementById('authModal').style.display = 'flex'; document.getElementById('authModal').classList.remove('hidden'); }
-  function hideAuthModal() { document.getElementById('authModal').style.display = 'none'; document.getElementById('authModal').classList.add('hidden'); }
-  function setAuthMode(isSignUp) {
-    if(isSignUp) {
+  function showAuthModal() { document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').style.display = 'flex'; }
+  function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').style.display = 'none'; }
+  
+  let currentAuthMode = false; // false=login, true=signup
+  function updateAuthUI() {
+    if(currentAuthMode) {
       document.getElementById('authModalTitle').innerText = 'Создать аккаунт';
       document.getElementById('authActionBtn').innerText = 'Зарегистрироваться';
       document.getElementById('toggleAuthText').innerHTML = 'Уже есть аккаунт?';
@@ -243,235 +185,167 @@
       document.getElementById('toggleAuthModeBtn').innerText = 'Создать';
     }
   }
+  document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { currentAuthMode = !currentAuthMode; updateAuthUI(); });
+  document.getElementById('closeAuthModal').addEventListener('click', hideAuthModal);
   
-  let currentAuthMode = false; // false = login, true = signup
-  document.getElementById('toggleAuthModeBtn').addEventListener('click', () => {
-    currentAuthMode = !currentAuthMode;
-    setAuthMode(currentAuthMode);
-  });
-  
-  async function handleAuthAction() {
-    const email = document.getElementById('authEmail').value;
+  async function handleAuth() {
+    const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const errorDiv = document.getElementById('authError');
-    
-    if(!email || !password) {
-      errorDiv.innerText = 'Заполните все поля';
-      errorDiv.classList.remove('hidden');
-      return;
-    }
-    
+    if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
     errorDiv.classList.add('hidden');
-    
     try {
       if(currentAuthMode) {
         await createUserWithEmailAndPassword(auth, email, password);
-        showToast('Аккаунт успешно создан!');
+        showToast('Аккаунт создан');
         hideAuthModal();
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        showToast('Добро пожаловать!');
+        showToast('Добро пожаловать');
         hideAuthModal();
       }
-    } catch (error) {
-      errorDiv.innerText = error.message;
+    } catch(err) {
+      errorDiv.innerText = err.message;
       errorDiv.classList.remove('hidden');
-      console.error(error);
     }
   }
-  document.getElementById('authActionBtn').addEventListener('click', handleAuthAction);
+  document.getElementById('authActionBtn').addEventListener('click', handleAuth);
   
-  async function signOut() {
-    await firebaseSignOut(auth);
-    showToast('Вы вышли из аккаунта');
-  }
-  window.signOut = signOut;
+  async function signOut() { await firebaseSignOut(auth); showToast('Вы вышли'); }
+  document.getElementById('logoutBtn').addEventListener('click', signOut);
+  document.getElementById('loginBtn').addEventListener('click', () => { currentAuthMode = false; updateAuthUI(); showAuthModal(); });
   
-  // --- Linking logic ---
-  async function startLinking(email, password, startFresh = false) {
-    if(isLinkingInProgress) return;
-    isLinkingInProgress = true;
+  async function startLinking(email, password) {
+    if(isLinking) return;
+    isLinking = true;
     try {
       const credential = EmailAuthProvider.credential(email, password);
       await linkWithCredential(auth.currentUser, credential);
-      showToast('Анонимные данные успешно связаны с новым аккаунтом!');
+      showToast('Анонимные данные привязаны!');
       hideAuthModal();
-    } catch (error) {
-      if(error.code === 'auth/credential-already-in-use' && !startFresh) {
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-        if(methods && methods.length > 0) {
-          if(confirm('Этот email уже зарегистрирован. Хотите войти в существующий аккаунт? Ваши текущие данные будут заменены.')) {
-            await signInWithEmailAndPassword(auth, email, password);
-            showToast('Вы вошли в существующий аккаунт');
-            hideAuthModal();
-          } else {
-            document.getElementById('authError').innerText = 'Этот email уже используется.';
-            document.getElementById('authError').classList.remove('hidden');
-          }
-        } else {
-          document.getElementById('authError').innerText = error.message;
-          document.getElementById('authError').classList.remove('hidden');
+    } catch(err) {
+      if(err.code === 'auth/credential-already-in-use') {
+        if(confirm('Этот email уже зарегистрирован. Войти в него? (текущие данные будут заменены)')) {
+          await signInWithEmailAndPassword(auth, email, password);
+          hideAuthModal();
         }
       } else {
-        document.getElementById('authError').innerText = error.message;
+        document.getElementById('authError').innerText = err.message;
         document.getElementById('authError').classList.remove('hidden');
       }
-    } finally {
-      isLinkingInProgress = false;
-    }
+    } finally { isLinking = false; }
   }
-  
   document.getElementById('linkAccountBtn').addEventListener('click', () => {
-    const email = document.getElementById('authEmail').value;
+    const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
-    if(email && password) {
-      startLinking(email, password, false);
-    } else {
-      document.getElementById('authError').innerText = 'Заполните email и пароль';
-      document.getElementById('authError').classList.remove('hidden');
-    }
+    if(email && password) startLinking(email, password);
+    else showToast('Введите email и пароль');
   });
-  
   document.getElementById('startFreshBtn').addEventListener('click', async () => {
-    const email = document.getElementById('authEmail').value;
+    const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     if(email && password) {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
-        showToast('Новый аккаунт создан, старые данные не сохранены');
         hideAuthModal();
-      } catch (error) {
-        document.getElementById('authError').innerText = error.message;
-        document.getElementById('authError').classList.remove('hidden');
-      }
-    } else {
-      document.getElementById('authError').innerText = 'Заполните email и пароль';
-      document.getElementById('authError').classList.remove('hidden');
-    }
+      } catch(err) { alert(err.message); }
+    } else showToast('Введите email и пароль');
   });
   
-  // --- Data handling (Finance & Todos) ---
-  async function clearAllDataForUser() {
-    if(!currentUser) return;
+  // Data functions
+  async function clearAllData() {
+    if(!currentUser || !confirm('Удалить все данные?')) return;
     const batch = writeBatch(db);
-    const transSnap = await getDocs(collection(db, "users", currentUser.uid, "transactions"));
-    transSnap.forEach(doc => batch.delete(doc.ref));
-    const todoSnap = await getDocs(collection(db, "users", currentUser.uid, "todos"));
-    todoSnap.forEach(doc => batch.delete(doc.ref));
+    (await getDocs(collection(db, "users", currentUser.uid, "transactions"))).forEach(doc => batch.delete(doc.ref));
+    (await getDocs(collection(db, "users", currentUser.uid, "todos"))).forEach(doc => batch.delete(doc.ref));
     await batch.commit();
     showToast('Все данные удалены');
   }
-  window.clearAllData = clearAllDataForUser;
+  window.clearAllData = clearAllData;
   
   async function addTransaction(desc, amount, type, category) {
-    if (!currentUser) return;
+    if(!currentUser) { showToast('Сначала войдите'); return; }
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
-      description: desc, amount, type, category,
-      date: new Date().toISOString().slice(0,10), createdAt: Date.now()
+      description: desc, amount, type, category, date: new Date().toISOString().slice(0,10), createdAt: Date.now()
     });
-    showToast("✅ Добавлено");
+    showToast('✅ Добавлено');
   }
-  
-  async function deleteTransaction(id) {
-    if (!currentUser || !confirm('Удалить операцию?')) return;
-    await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id));
-    showToast("Удалено");
-  }
+  async function deleteTransaction(id) { if(confirm('Удалить?')) await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id)); showToast('Удалено'); }
   window.deleteTransaction = deleteTransaction;
   
   async function addOrUpdateTodo(id, text, description, priority, category, dueDate, date) {
-    if (!currentUser) return;
-    const todoRef = collection(db, "users", currentUser.uid, "todos");
-    if (id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(todoRef, { text, description, priority, category, dueDate: dueDate || null, status: 'active', createdAt: Date.now(), date });
+    if(!currentUser) return;
+    if(id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
+    await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, dueDate: dueDate||null, status:'active', createdAt:Date.now(), date });
   }
-  
-  async function deleteTodo(id) {
-    if (!currentUser || !confirm('Удалить задачу?')) return;
+  async function deleteTodo(id) { if(confirm('Удалить задачу?')) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id)); showToast('Удалено'); }
+  async function toggleTodoStatus(id) {
+    const todo = allTodos.find(t=>t.id===id);
+    if(!todo) return;
+    const newStatus = todo.status==='completed'?'active':'completed';
     await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    showToast('Удалено');
+    await addDoc(collection(db, "users", currentUser.uid, "todos"), {...todo, status:newStatus});
   }
   window.deleteTodo = deleteTodo;
-  
-  async function toggleTodoStatus(id) {
-    if (!currentUser) return;
-    const todo = allTodos.find(t => t.id === id);
-    if (!todo) return;
-    const newStatus = todo.status === 'completed' ? 'active' : 'completed';
-    await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(collection(db, "users", currentUser.uid, "todos"), { ...todo, status: newStatus });
-    showToast(newStatus === 'completed' ? '✅ Завершено' : '🔄 В работе');
-  }
   window.toggleTodoStatus = toggleTodoStatus;
   
-  function getFilteredTx() { return allTransactions.filter(tx => tx.date.startsWith(currentMonth)); }
-  
+  function getFilteredTx() { return allTransactions.filter(tx=>tx.date.startsWith(currentMonth)); }
   function refreshFinanceUI() {
     let filtered = getFilteredTx();
     let inc = filtered.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
     let exp = filtered.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-    document.getElementById('balanceDisplay').innerHTML = (inc-exp).toLocaleString('ru-RU') + ' ₽';
-    document.getElementById('incomeDisplay').innerHTML = inc.toLocaleString('ru-RU') + ' ₽';
-    document.getElementById('expenseDisplay').innerHTML = exp.toLocaleString('ru-RU') + ' ₽';
-    renderTransactions(filtered);
-    renderCharts(filtered);
-  }
-  
-  function renderTransactions(filtered) {
+    document.getElementById('balanceDisplay').innerHTML = (inc-exp).toLocaleString('ru-RU')+' ₽';
+    document.getElementById('incomeDisplay').innerHTML = inc.toLocaleString('ru-RU')+' ₽';
+    document.getElementById('expenseDisplay').innerHTML = exp.toLocaleString('ru-RU')+' ₽';
     let container = document.getElementById('transactionList');
-    if(filtered.length===0) { container.innerHTML = '<p class="text-center text-gray-400 py-6">📭 Нет операций за месяц</p>'; return; }
-    let recent = [...filtered].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
-    container.innerHTML = recent.map(tx => `
-      <div class="flex items-center justify-between py-3">
-        <div><p class="font-medium text-gray-800">${escapeHtml(tx.description)}</p><p class="text-xs text-gray-400">${escapeHtml(tx.category)} • ${formatDate(tx.date)}</p></div>
-        <div class="flex items-center gap-2"><span class="font-bold ${tx.type==='income'?'text-success':'text-danger'}">${tx.type==='income'?'+':'-'}${tx.amount.toLocaleString('ru-RU')} ₽</span><button onclick="window.deleteTransaction('${tx.id}')" class="touch-target text-gray-400 hover:text-danger text-xl px-2">✕</button></div>
-      </div>`).join('');
-  }
-  
-  function renderCharts(filtered) {
+    if(filtered.length===0) container.innerHTML = '<p class="text-center py-6">📭 Нет операций</p>';
+    else container.innerHTML = [...filtered].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(tx=>`
+      <div class="flex justify-between py-3"><div><p class="font-medium">${escapeHtml(tx.description)}</p><p class="text-xs text-gray-400">${escapeHtml(tx.category)} • ${formatDate(tx.date)}</p></div><div><span class="font-bold ${tx.type==='income'?'text-success':'text-danger'}">${tx.type==='income'?'+':'-'}${tx.amount.toLocaleString()} ₽</span><button onclick="window.deleteTransaction('${tx.id}')" class="ml-2 text-gray-400 text-xl">✕</button></div></div>`).join('');
     let expenses = filtered.filter(t=>t.type==='expense');
-    let catMap = {}; expenses.forEach(tx=>{ catMap[tx.category] = (catMap[tx.category]||0)+tx.amount; });
-    let cats = Object.keys(catMap), vals = Object.values(catMap);
-    let pieCtx = document.getElementById('pieChart').getContext('2d');
-    let noPie = document.getElementById('noPieData');
-    if(cats.length===0) { if(pieChart) pieChart.destroy(); noPie.classList.remove('hidden'); document.getElementById('pieChart').style.display = 'none'; } else { noPie.classList.add('hidden'); document.getElementById('pieChart').style.display = 'block'; if(pieChart) pieChart.destroy(); pieChart = new Chart(pieCtx, { type:'pie', data:{ labels:cats, datasets:[{ data:vals, backgroundColor:['#F43F5E','#3B82F6','#F59E0B','#10B981','#A855F7','#EC4899','#6B7280'] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ size: window.innerWidth<640?9:11 } } } } } }); }
-    
-    let last7 = []; let today = new Date();
-    for(let i=6;i>=0;i--){ let d = new Date(); d.setDate(today.getDate()-i); let dayStr=d.toISOString().split('T')[0]; let dayTx = filtered.filter(tx=>tx.date===dayStr); last7.push({ label: d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}), inc: dayTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0), exp: dayTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0) }); }
-    let lineCtx = document.getElementById('lineChart').getContext('2d'); if(lineChart) lineChart.destroy();
-    lineChart = new Chart(lineCtx, { type:'line', data:{ labels:last7.map(d=>d.label), datasets:[{ label:'Доход', data:last7.map(d=>d.inc), borderColor:'#10B981', backgroundColor:'rgba(16,185,129,0.05)', tension:0.3, fill:true },{ label:'Расход', data:last7.map(d=>d.exp), borderColor:'#F43F5E', tension:0.3, fill:true }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{ callbacks:{ label:(ctx)=>`${ctx.dataset.label}: ${ctx.raw.toLocaleString('ru-RU')} ₽` } } } } });
+    let catMap = {}; expenses.forEach(tx=>catMap[tx.category]=(catMap[tx.category]||0)+tx.amount);
+    let cats=Object.keys(catMap), vals=Object.values(catMap);
+    let pieCtx=document.getElementById('pieChart').getContext('2d');
+    if(pieChart) pieChart.destroy();
+    if(cats.length===0) { document.getElementById('noPieData').classList.remove('hidden'); document.getElementById('pieChart').style.display='none'; }
+    else { document.getElementById('noPieData').classList.add('hidden'); document.getElementById('pieChart').style.display='block'; pieChart=new Chart(pieCtx,{type:'pie',data:{labels:cats,datasets:[{data:vals,backgroundColor:['#F43F5E','#3B82F6','#F59E0B','#10B981','#A855F7','#EC4899','#6B7280']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:window.innerWidth<640?9:11}}}}}}); }
+    let last7=[]; let today=new Date();
+    for(let i=6;i>=0;i--){ let d=new Date(); d.setDate(today.getDate()-i); let dayStr=d.toISOString().split('T')[0]; let dayTx=filtered.filter(tx=>tx.date===dayStr); last7.push({label:d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}), inc:dayTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0), exp:dayTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)}); }
+    let lineCtx=document.getElementById('lineChart').getContext('2d'); if(lineChart) lineChart.destroy();
+    lineChart=new Chart(lineCtx,{type:'line',data:{labels:last7.map(d=>d.label),datasets:[{label:'Доход',data:last7.map(d=>d.inc),borderColor:'#10B981',tension:0.3,fill:true},{label:'Расход',data:last7.map(d=>d.exp),borderColor:'#F43F5E',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false}});
   }
   
   document.getElementById('transactionForm').addEventListener('submit', async (e)=>{
-    e.preventDefault(); let desc = document.getElementById('descInput').value.trim(); let amount = parseFloat(document.getElementById('amountInput').value); let cat = document.getElementById('categorySelect').value;
-    if(!desc || isNaN(amount) || amount<=0) return showToast('Заполните описание и сумму');
-    await addTransaction(desc, amount, transactionType, cat);
+    e.preventDefault();
+    let desc=document.getElementById('descInput').value.trim();
+    let amount=parseFloat(document.getElementById('amountInput').value);
+    let cat=document.getElementById('categorySelect').value;
+    if(!desc||isNaN(amount)||amount<=0) return showToast('Заполните описание и сумму');
+    await addTransaction(desc,amount,transactionType,cat);
     document.getElementById('transactionForm').reset();
   });
-  
-  window.setType = function(type) { 
-    transactionType=type; 
-    let expBtn=document.getElementById('btnExpense'), incBtn=document.getElementById('btnIncome'); 
-    if(type==='expense'){ expBtn.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-danger text-white active:scale-95 touch-target'; incBtn.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700 active:scale-95 touch-target'; } 
-    else { incBtn.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white active:scale-95 touch-target'; expBtn.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700 active:scale-95 touch-target'; } 
+  window.setType = function(type) {
+    transactionType=type;
+    let exp=document.getElementById('btnExpense'), inc=document.getElementById('btnIncome');
+    if(type==='expense'){ exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-danger text-white'; inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
+    else { inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white'; exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
   };
   
   function getTodoDate() { return document.getElementById('todoDatePicker').value; }
-  
   function getFilteredTodoList() {
-    let date = getTodoDate(); if(!date) return [];
-    let list = allTodos.filter(t => t.date === date);
-    let search = document.getElementById('searchInput').value.toLowerCase();
-    let prio = document.getElementById('filterPriority').value;
-    let stat = document.getElementById('filterStatus').value;
-    return list.filter(t => {
-      if(search && !(t.text.toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search))) return false;
-      if(prio !== 'all' && t.priority !== prio) return false;
-      if(stat === 'completed' && t.status !== 'completed') return false;
-      if(stat === 'active' && t.status === 'completed') return false;
+    let date=getTodoDate(); if(!date) return [];
+    let list=allTodos.filter(t=>t.date===date);
+    let search=document.getElementById('searchInput').value.toLowerCase();
+    let prio=document.getElementById('filterPriority').value;
+    let stat=document.getElementById('filterStatus').value;
+    return list.filter(t=>{
+      if(search && !(t.text.toLowerCase().includes(search)||(t.description||'').toLowerCase().includes(search))) return false;
+      if(prio!=='all' && t.priority!==prio) return false;
+      if(stat==='completed' && t.status!=='completed') return false;
+      if(stat==='active' && t.status==='completed') return false;
       return true;
-    }).sort((a,b) => {
-      let f = todoSort.field; let av, bv;
+    }).sort((a,b)=>{
+      let f=todoSort.field;
+      let av, bv;
       if(f==='dueDate'){ av=a.dueDate||'9999-12-31'; bv=b.dueDate||'9999-12-31'; }
       else if(f==='priority'){ let p={high:3,medium:2,low:1}; av=p[a.priority]||0; bv=p[b.priority]||0; }
       else if(f==='text'){ av=a.text.toLowerCase(); bv=b.text.toLowerCase(); }
@@ -480,192 +354,66 @@
       return (av<bv ? (todoSort.order==='asc'?-1:1) : (av>bv ? (todoSort.order==='asc'?1:-1) : 0));
     });
   }
-  
   function renderTodo() {
-    const container = document.getElementById('todoListContainer');
-    const filtered = getFilteredTodoList();
-    const todayStr = new Date().toISOString().slice(0,10);
-    if(filtered.length === 0) {
-      container.innerHTML = '<div class="text-center text-gray-400 py-10">✨ Нет задач на этот день</div>';
-      return;
-    }
-    if(isMobile()) {
-      container.innerHTML = filtered.map(t => {
-        const isOverdue = (t.dueDate && t.dueDate < todayStr && t.status !== 'completed');
-        const priorityClass = `priority-${t.priority}`;
-        const priorityText = {high:'Высокий',medium:'Средний',low:'Низкий'}[t.priority];
-        return `
-          <div class="todo-card-mobile">
-            <div class="flex items-start gap-3">
-              <input type="checkbox" ${t.status==='completed' ? 'checked' : ''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6 touch-target">
-              <div class="flex-1">
-                <div class="font-semibold text-gray-800 ${t.status==='completed' ? 'line-through opacity-70' : ''}">${escapeHtml(t.text)}</div>
-                ${t.description ? `<div class="text-xs text-gray-500 mt-1">${escapeHtml(t.description)}</div>` : ''}
-                <div class="flex flex-wrap gap-2 mt-2">
-                  <span class="${priorityClass}">${priorityText}</span>
-                  ${t.category ? `<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>` : ''}
-                  ${t.dueDate ? `<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs ${isOverdue ? 'text-danger font-semibold' : ''}">📅 ${formatDate(t.dueDate)}${isOverdue ? ' ⚠️' : ''}</span>` : ''}
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <button onclick="window.editTodo('${t.id}')" class="touch-target text-gray-400 hover:text-primary text-lg px-2">✎</button>
-                <button onclick="window.deleteTodo('${t.id}')" class="touch-target text-gray-400 hover:text-danger text-lg px-2">✕</button>
-              </div>
-            </div>
-          </div>
-        `;
+    let container=document.getElementById('todoListContainer');
+    let filtered=getFilteredTodoList();
+    let todayStr=new Date().toISOString().slice(0,10);
+    if(filtered.length===0){ container.innerHTML='<div class="text-center py-10">✨ Нет задач</div>'; return; }
+    if(isMobile()){
+      container.innerHTML=filtered.map(t=>{
+        let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed';
+        return `<div class="todo-card-mobile"><div class="flex items-start gap-3"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6"><div class="flex-1"><div class="font-semibold ${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}</div>${t.description?`<div class="text-xs text-gray-500">${escapeHtml(t.description)}</div>`:''}<div class="flex flex-wrap gap-2 mt-2"><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span>${t.category?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>`:''}${t.dueDate?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue?'text-danger font-semibold':''}">📅 ${formatDate(t.dueDate)}${isOverdue?' ⚠️':''}</span>`:''}</div></div><div><button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button></div></div></div>`;
       }).join('');
     } else {
-      container.innerHTML = `
-        <table class="todo-table w-full">
-          <thead>
-            <tr class="bg-gray-50">
-              <th class="w-10 rounded-l-xl">✅</th>
-              <th onclick="window.sortTable('text')" id="th-text" class="sort-arrow cursor-pointer">Задача</th>
-              <th onclick="window.sortTable('priority')" id="th-priority" class="sort-arrow cursor-pointer">Приоритет</th>
-              <th onclick="window.sortTable('category')" id="th-category" class="sort-arrow cursor-pointer">Категория</th>
-              <th onclick="window.sortTable('dueDate')" id="th-dueDate" class="sort-arrow cursor-pointer">Срок</th>
-              <th class="rounded-r-xl w-16"></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filtered.map(t => {
-              const isOverdue = (t.dueDate && t.dueDate < todayStr && t.status !== 'completed');
-              const priorityClass = `priority-${t.priority}`;
-              const priorityText = {high:'Высокий',medium:'Средний',low:'Низкий'}[t.priority];
-              return `
-                <tr>
-                  <td class="p-2"><input type="checkbox" ${t.status==='completed' ? 'checked' : ''} onchange="window.toggleTodoStatus('${t.id}')" class="w-5 h-5"></td>
-                  <td class="${t.status==='completed' ? 'line-through opacity-70' : ''}">${escapeHtml(t.text)}${t.description ? `<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>` : ''}</td>
-                  <td><span class="${priorityClass}">${priorityText}</span></td>
-                  <td>${t.category ? escapeHtml(t.category) : '—'}</td>
-                  <td class="${isOverdue ? 'text-danger font-semibold' : ''}">${t.dueDate ? formatDate(t.dueDate) + (isOverdue ? ' ⚠️' : '') : '—'}</td>
-                  <td class="text-right"><button onclick="window.editTodo('${t.id}')" class="text-gray-400 hover:text-primary px-2 touch-target">✎</button> <button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 hover:text-danger px-2 touch-target">✕</button></td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
+      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
-      let activeTh = document.getElementById(`th-${todoSort.field}`);
-      if(activeTh) activeTh.classList.add(todoSort.order==='asc' ? 'sort-asc' : 'sort-desc');
+      let activeTh=document.getElementById(`th-${todoSort.field}`);
+      if(activeTh) activeTh.classList.add(todoSort.order==='asc'?'sort-asc':'sort-desc');
     }
   }
+  function refreshTodoUI(){ renderTodo(); }
+  window.sortTable = function(field){ if(todoSort.field===field) todoSort.order=todoSort.order==='asc'?'desc':'asc'; else {todoSort.field=field; todoSort.order='asc';} refreshTodoUI(); };
+  window.editTodo = function(id){ let todo=allTodos.find(t=>t.id===id); if(!todo) return; document.getElementById('modalTitle').innerText='Редактировать'; document.getElementById('editTodoId').value=id; document.getElementById('todoText').value=todo.text; document.getElementById('todoDescription').value=todo.description||''; document.getElementById('todoPriority').value=todo.priority; document.getElementById('todoCategory').value=todo.category||''; document.getElementById('todoDueDate').value=todo.dueDate||''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
+  window.openAddTodoModal = function(){ document.getElementById('modalTitle').innerText='Новая задача'; document.getElementById('editTodoId').value=''; document.getElementById('todoText').value=''; document.getElementById('todoDescription').value=''; document.getElementById('todoPriority').value='medium'; document.getElementById('todoCategory').value=''; document.getElementById('todoDueDate').value=''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
+  window.closeModal = function(){ document.getElementById('todoModal').classList.add('hidden'); document.getElementById('todoModal').style.display='none'; };
+  document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{ e.preventDefault(); let date=getTodoDate(); if(!date) return showToast('Выберите дату'); let id=document.getElementById('editTodoId').value; let text=document.getElementById('todoText').value.trim(); if(!text) return; let priority=document.getElementById('todoPriority').value; let category=document.getElementById('todoCategory').value.trim(); let dueDate=document.getElementById('todoDueDate').value; let description=document.getElementById('todoDescription').value.trim(); await addOrUpdateTodo(id,text,description,priority,category,dueDate,date); closeModal(); showToast('Задача сохранена'); });
+  window.setTodayDate = function(){ document.getElementById('todoDatePicker').value=new Date().toISOString().split('T')[0]; refreshTodoUI(); };
+  window.switchTab = function(tab){ let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn'); if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } else { f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); } closeModal(); };
   
-  function refreshTodoUI() { renderTodo(); }
-  window.sortTable = function(field) { if(todoSort.field===field) todoSort.order = todoSort.order==='asc'?'desc':'asc'; else { todoSort.field=field; todoSort.order='asc'; } refreshTodoUI(); };
-  window.editTodo = function(id) {
-    let todo = allTodos.find(t => t.id === id);
-    if(!todo) return;
-    document.getElementById('modalTitle').innerText='Редактировать';
-    document.getElementById('editTodoId').value=id;
-    document.getElementById('todoText').value=todo.text;
-    document.getElementById('todoDescription').value=todo.description||'';
-    document.getElementById('todoPriority').value=todo.priority;
-    document.getElementById('todoCategory').value=todo.category||'';
-    document.getElementById('todoDueDate').value=todo.dueDate||'';
-    document.getElementById('todoModal').classList.remove('hidden');
-    document.getElementById('todoModal').style.display='flex';
-  };
-  window.openAddTodoModal = function() {
-    document.getElementById('modalTitle').innerText='Новая задача';
-    document.getElementById('editTodoId').value='';
-    document.getElementById('todoText').value='';
-    document.getElementById('todoDescription').value='';
-    document.getElementById('todoPriority').value='medium';
-    document.getElementById('todoCategory').value='';
-    document.getElementById('todoDueDate').value='';
-    document.getElementById('todoModal').classList.remove('hidden');
-    document.getElementById('todoModal').style.display='flex';
-  };
-  window.closeModal = function() { 
-    document.getElementById('todoModal').classList.add('hidden'); 
-    document.getElementById('todoModal').style.display='none'; 
-  };
-  document.getElementById('todoFormModal').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    let date = getTodoDate(); if(!date) return showToast('Выберите дату');
-    let id = document.getElementById('editTodoId').value;
-    let text = document.getElementById('todoText').value.trim();
-    if(!text) return;
-    let priority = document.getElementById('todoPriority').value;
-    let category = document.getElementById('todoCategory').value.trim();
-    let dueDate = document.getElementById('todoDueDate').value;
-    let description = document.getElementById('todoDescription').value.trim();
-    await addOrUpdateTodo(id, text, description, priority, category, dueDate, date);
-    closeModal();
-    showToast('Задача сохранена');
-  });
-  window.setTodayDate = function() { 
-    document.getElementById('todoDatePicker').value = new Date().toISOString().split('T')[0]; 
-    refreshTodoUI(); 
-  };
-  
-  window.switchTab = function(tab) {
-    let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn');
-    if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } 
-    else{ f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); }
-    closeModal();
-  };
-  
-  function startDataListeners() {
-    if (!currentUser) return;
+  function startDataListeners(){
+    if(!currentUser) return;
     if(unsubscribeTransactions) unsubscribeTransactions();
     if(unsubscribeTodos) unsubscribeTodos();
-    const qTransactions = query(collection(db, "users", currentUser.uid, "transactions"));
-    unsubscribeTransactions = onSnapshot(qTransactions, (snapshot) => {
-      allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      refreshFinanceUI();
-    });
-    const qTodos = query(collection(db, "users", currentUser.uid, "todos"));
-    unsubscribeTodos = onSnapshot(qTodos, (snapshot) => {
-      allTodos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      refreshTodoUI();
-    });
-  }
-  
-  async function initAuth() {
-    try {
-      const userCred = await signInAnonymously(auth);
-      currentUser = userCred.user;
-      showToast("Вход выполнен");
-      startDataListeners();
-    } catch (err) {
-      console.error(err);
-      if (err.code === 'auth/configuration-not-found') {
-        showToast("❌ Ошибка: в Firebase не включён анонимный вход. Включите в консоли Authentication → Anonymous");
-      } else {
-        showToast("Ошибка подключения к Firebase");
-      }
-    }
+    unsubscribeTransactions = onSnapshot(query(collection(db, "users", currentUser.uid, "transactions")), snap=>{ allTransactions=snap.docs.map(d=>({id:d.id,...d.data()})); refreshFinanceUI(); });
+    unsubscribeTodos = onSnapshot(query(collection(db, "users", currentUser.uid, "todos")), snap=>{ allTodos=snap.docs.map(d=>({id:d.id,...d.data()})); refreshTodoUI(); });
   }
   
   onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      if(user.isAnonymous && !isLinkingInProgress) {
-        // Показываем модалку для связывания
-        document.getElementById('linkingPrompt').classList.remove('hidden');
-        document.getElementById('authForm').classList.add('hidden');
-        showAuthModal();
-      } else {
-        document.getElementById('linkingPrompt').classList.add('hidden');
-        document.getElementById('authForm').classList.remove('hidden');
-        hideAuthModal();
-      }
+    if(user) {
       currentUser = user;
       document.getElementById('logoutBtn').classList.remove('hidden');
+      document.getElementById('loginBtn').classList.add('hidden');
+      if(user.isAnonymous) {
+        // Показываем предложение связать аккаунт только если пользователь сам нажал "Войти"
+        // Для автоматического входа не показываем модалку.
+        // Вместо этого покажем кнопку "Привязать аккаунт" где-то, но для простоты предлагаем при нажатии на "Войти"
+        // Но чтобы не мешать, просто ничего не делаем.
+      }
       startDataListeners();
     } else {
       currentUser = null;
       document.getElementById('logoutBtn').classList.add('hidden');
+      document.getElementById('loginBtn').classList.remove('hidden');
       if(unsubscribeTransactions) unsubscribeTransactions();
       if(unsubscribeTodos) unsubscribeTodos();
       allTransactions = [];
       allTodos = [];
       refreshFinanceUI();
       refreshTodoUI();
-      initAuth();
+      // Запускаем анонимный вход
+      try {
+        await signInAnonymously(auth);
+      } catch(e) { console.error(e); }
     }
   });
   
