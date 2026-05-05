@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>📱 Планер | Финансы + Задачи (Только аккаунт)</title>
+  <title>📱 Планер | Финансы + Задачи (Обязательный вход)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -29,33 +29,27 @@
     .todo-card-mobile { background: white; border-radius: 1.25rem; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
     .filter-scroll { overflow-x: auto; display: flex; gap: 0.5rem; padding-bottom: 0.5rem; }
     .touch-target { min-height: 48px; min-width: 48px; display: inline-flex; align-items: center; justify-content: center; }
-    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 10px 20px; border-radius: 60px; z-index: 200; white-space: nowrap; animation: slideUp 0.2s; pointer-events: none; }
+    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 10px 20px; border-radius: 60px; z-index: 200; white-space: nowrap; animation: slideUp 0.2s; }
     @keyframes slideUp { from { opacity: 0; bottom: 70px; } to { opacity: 1; bottom: 90px; } }
     .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 50; }
     .modal-card { background: white; max-width: 90vw; width: 100%; margin: 1rem; border-radius: 2rem; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
-    @media (min-width: 640px) { .modal-card { max-width: 500px; } }
-    .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; z-index: 40; }
+    @media (min-width: 640px) { .modal-card { max-width: 450px; } }
+    .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; }
     @media (max-width: 640px) { .fab { display: flex; } .desktop-add-btn { display: none; } }
-    .hidden { display: none; }
-    .blur-bg { filter: blur(0px); transition: filter 0.2s; }
-    .disabled-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 45; display: none; }
+    .app-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 45; display: none; align-items: center; justify-content: center; }
+    .app-content { transition: filter 0.2s; }
   </style>
 </head>
 <body>
-<div class="max-w-6xl mx-auto px-4 py-5 md:py-7">
+<div class="app-content max-w-6xl mx-auto px-4 py-5 md:py-7">
   <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
     <div class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center"><span class="text-white text-xl">✨</span></div><h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-800 to-purple-800 bg-clip-text text-transparent">Личный планер</h1></div>
     <div class="flex gap-1 bg-white/60 backdrop-blur-md rounded-2xl p-1">
       <button onclick="switchTab('finance')" id="tabFinanceBtn" class="px-5 py-2 rounded-xl tab-active font-semibold text-sm touch-target">💰 Финансы</button>
       <button onclick="switchTab('todo')" id="tabTodoBtn" class="px-5 py-2 rounded-xl tab-inactive font-semibold text-sm touch-target">📋 Задачи</button>
     </div>
-    <div class="flex gap-2">
-      <button id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target hidden">🚪 Выйти</button>
-    </div>
+    <button id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target hidden">🚪 Выйти</button>
   </div>
-
-  <!-- Блокировка интерфейса, пока пользователь не авторизован -->
-  <div id="disabledOverlay" class="disabled-overlay"></div>
 
   <!-- Финансы -->
   <div id="financeTab" class="animate-fade-in">
@@ -109,10 +103,10 @@
   </div>
 </div>
 
-<!-- Модалка входа/регистрации (обязательная) -->
+<!-- Модалка авторизации (обязательная) -->
 <div id="authModal" class="modal-overlay" style="display: flex;">
   <div class="modal-card">
-    <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Добро пожаловать</h2>
+    <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Вход / Регистрация</h2>
     <div id="authForm" class="space-y-4">
       <div><label class="text-sm font-medium text-gray-600">Email</label><input type="email" id="authEmail" class="w-full px-4 py-3 border rounded-xl"></div>
       <div><label class="text-sm font-medium text-gray-600">Пароль</label><input type="password" id="authPassword" class="w-full px-4 py-3 border rounded-xl"></div>
@@ -120,6 +114,7 @@
       <button id="authActionBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Войти</button>
       <p class="text-center text-sm text-gray-500"><span id="toggleAuthText">Нет аккаунта?</span> <button id="toggleAuthModeBtn" class="text-primary font-semibold">Создать</button></p>
     </div>
+    <div class="mt-4 text-center"><button id="closeAuthModal" class="text-gray-500 text-sm">Закрыть</button></div>
   </div>
 </div>
 
@@ -135,7 +130,7 @@
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШУ) ====================
+  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ) ====================
   const firebaseConfig = {
     apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
     authDomain: "project-5701820354067340611.firebaseapp.com",
@@ -167,94 +162,66 @@
   // DOM элементы
   const authModal = document.getElementById('authModal');
   const logoutBtn = document.getElementById('logoutBtn');
-  const disabledOverlay = document.getElementById('disabledOverlay');
+  const appContent = document.querySelector('.app-content');
   
-  function showToast(msg) { 
-    let t = document.querySelector('.toast'); 
-    if(t) t.remove(); 
-    t = document.createElement('div'); 
-    t.className = 'toast'; 
-    t.innerText = msg; 
-    document.body.appendChild(t); 
-    setTimeout(()=> t.remove(), 2100); 
-  }
+  function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
   function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
   
-  // Блокировка интерфейса, если нет пользователя
-  function setInterfaceEnabled(enabled) {
-    if(enabled) {
-      disabledOverlay.style.display = 'none';
+  // Блокировка/разблокировка интерфейса
+  function setAuthLock(locked) {
+    if(locked) {
+      authModal.style.display = 'flex';
+      appContent.style.filter = 'blur(4px)';
+      appContent.style.pointerEvents = 'none';
     } else {
-      disabledOverlay.style.display = 'block';
+      authModal.style.display = 'none';
+      appContent.style.filter = 'none';
+      appContent.style.pointerEvents = 'auto';
     }
   }
   
-  // Модалка авторизации
-  let currentAuthMode = false; // false=login, true=signup
-  function updateAuthUI() {
-    if(currentAuthMode) {
-      document.getElementById('authModalTitle').innerText = 'Создать аккаунт';
-      document.getElementById('authActionBtn').innerText = 'Зарегистрироваться';
-      document.getElementById('toggleAuthText').innerHTML = 'Уже есть аккаунт?';
-      document.getElementById('toggleAuthModeBtn').innerText = 'Войти';
-    } else {
-      document.getElementById('authModalTitle').innerText = 'Вход в аккаунт';
-      document.getElementById('authActionBtn').innerText = 'Войти';
-      document.getElementById('toggleAuthText').innerHTML = 'Нет аккаунта?';
-      document.getElementById('toggleAuthModeBtn').innerText = 'Создать';
-    }
+  // Очистка подписок
+  function detachListeners() {
+    if(unsubscribeTransactions) { unsubscribeTransactions(); unsubscribeTransactions = null; }
+    if(unsubscribeTodos) { unsubscribeTodos(); unsubscribeTodos = null; }
   }
-  document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { 
-    currentAuthMode = !currentAuthMode; 
-    updateAuthUI(); 
-    document.getElementById('authError').classList.add('hidden');
-  });
   
-  async function handleAuth() {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
-    const errorDiv = document.getElementById('authError');
-    if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
-    errorDiv.classList.add('hidden');
-    try {
-      if(currentAuthMode) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        showToast('Аккаунт создан!');
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast('Добро пожаловать!');
-      }
-      // Модалка закроется автоматически при смене состояния onAuthStateChanged
-    } catch(err) {
-      errorDiv.innerText = err.message;
-      errorDiv.classList.remove('hidden');
-    }
+  // Запуск слушателей для текущего пользователя
+  function attachListeners() {
+    if(!currentUser) return;
+    detachListeners();
+    const transQuery = query(collection(db, "users", currentUser.uid, "transactions"));
+    unsubscribeTransactions = onSnapshot(transQuery, (snapshot) => {
+      allTransactions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      refreshFinanceUI();
+    }, (error) => { console.error("Ошибка загрузки транзакций:", error); showToast("Ошибка загрузки финансов"); });
+    
+    const todosQuery = query(collection(db, "users", currentUser.uid, "todos"));
+    unsubscribeTodos = onSnapshot(todosQuery, (snapshot) => {
+      allTodos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      refreshTodoUI();
+    }, (error) => { console.error("Ошибка загрузки задач:", error); showToast("Ошибка загрузки задач"); });
   }
-  document.getElementById('authActionBtn').addEventListener('click', handleAuth);
   
   // Выход
   async function signOut() {
     await firebaseSignOut(auth);
     showToast('Вы вышли');
+    setAuthLock(true);
+    logoutBtn.classList.add('hidden');
+    currentUser = null;
+    allTransactions = [];
+    allTodos = [];
+    refreshFinanceUI();
+    refreshTodoUI();
+    detachListeners();
   }
-  logoutBtn.addEventListener('click', signOut);
-  
-  // Очистка данных пользователя
-  async function clearAllData() {
-    if(!currentUser || !confirm('Удалить все данные?')) return;
-    const batch = writeBatch(db);
-    (await getDocs(collection(db, "users", currentUser.uid, "transactions"))).forEach(doc => batch.delete(doc.ref));
-    (await getDocs(collection(db, "users", currentUser.uid, "todos"))).forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    showToast('Все данные удалены');
-  }
-  window.clearAllData = clearAllData;
   
   // Финансы
   async function addTransaction(desc, amount, type, category) {
-    if(!currentUser) { showToast('Сначала войдите'); return; }
+    if(!currentUser) return;
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
       description: desc, amount, type, category, date: new Date().toISOString().slice(0,10), createdAt: Date.now()
     });
@@ -275,6 +242,7 @@
     if(filtered.length===0) container.innerHTML = '<p class="text-center py-6">📭 Нет операций</p>';
     else container.innerHTML = [...filtered].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(tx=>`
       <div class="flex justify-between py-3"><div><p class="font-medium">${escapeHtml(tx.description)}</p><p class="text-xs text-gray-400">${escapeHtml(tx.category)} • ${formatDate(tx.date)}</p></div><div><span class="font-bold ${tx.type==='income'?'text-success':'text-danger'}">${tx.type==='income'?'+':'-'}${tx.amount.toLocaleString()} ₽</span><button onclick="window.deleteTransaction('${tx.id}')" class="ml-2 text-gray-400 text-xl">✕</button></div></div>`).join('');
+    // Графики
     let expenses = filtered.filter(t=>t.type==='expense');
     let catMap = {}; expenses.forEach(tx=>catMap[tx.category]=(catMap[tx.category]||0)+tx.amount);
     let cats=Object.keys(catMap), vals=Object.values(catMap);
@@ -290,7 +258,6 @@
   
   document.getElementById('transactionForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
-    if(!currentUser) { showToast('Войдите в аккаунт'); return; }
     let desc=document.getElementById('descInput').value.trim();
     let amount=parseFloat(document.getElementById('amountInput').value);
     let cat=document.getElementById('categorySelect').value;
@@ -357,7 +324,7 @@
         return `<div class="todo-card-mobile"><div class="flex items-start gap-3"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6"><div class="flex-1"><div class="font-semibold ${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}</div>${t.description?`<div class="text-xs text-gray-500">${escapeHtml(t.description)}</div>`:''}<div class="flex flex-wrap gap-2 mt-2"><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span>${t.category?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>`:''}${t.dueDate?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue?'text-danger font-semibold':''}">📅 ${formatDate(t.dueDate)}${isOverdue?' ⚠️':''}</span>`:''}</div></div><div><button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button></div></div></div>`;
       }).join('');
     } else {
-      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
+      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th><tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
       let activeTh=document.getElementById(`th-${todoSort.field}`);
       if(activeTh) activeTh.classList.add(todoSort.order==='asc'?'sort-asc':'sort-desc');
@@ -366,46 +333,69 @@
   function refreshTodoUI(){ renderTodo(); }
   window.sortTable = function(field){ if(todoSort.field===field) todoSort.order=todoSort.order==='asc'?'desc':'asc'; else {todoSort.field=field; todoSort.order='asc';} refreshTodoUI(); };
   window.editTodo = function(id){ let todo=allTodos.find(t=>t.id===id); if(!todo) return; document.getElementById('modalTitle').innerText='Редактировать'; document.getElementById('editTodoId').value=id; document.getElementById('todoText').value=todo.text; document.getElementById('todoDescription').value=todo.description||''; document.getElementById('todoPriority').value=todo.priority; document.getElementById('todoCategory').value=todo.category||''; document.getElementById('todoDueDate').value=todo.dueDate||''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
-  window.openAddTodoModal = function(){ if(!currentUser) { showToast('Войдите в аккаунт'); return; } document.getElementById('modalTitle').innerText='Новая задача'; document.getElementById('editTodoId').value=''; document.getElementById('todoText').value=''; document.getElementById('todoDescription').value=''; document.getElementById('todoPriority').value='medium'; document.getElementById('todoCategory').value=''; document.getElementById('todoDueDate').value=''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
+  window.openAddTodoModal = function(){ document.getElementById('modalTitle').innerText='Новая задача'; document.getElementById('editTodoId').value=''; document.getElementById('todoText').value=''; document.getElementById('todoDescription').value=''; document.getElementById('todoPriority').value='medium'; document.getElementById('todoCategory').value=''; document.getElementById('todoDueDate').value=''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
   window.closeModal = function(){ document.getElementById('todoModal').classList.add('hidden'); document.getElementById('todoModal').style.display='none'; };
-  document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{ e.preventDefault(); if(!currentUser) { showToast('Войдите в аккаунт'); return; } let date=getTodoDate(); if(!date) return showToast('Выберите дату'); let id=document.getElementById('editTodoId').value; let text=document.getElementById('todoText').value.trim(); if(!text) return; let priority=document.getElementById('todoPriority').value; let category=document.getElementById('todoCategory').value.trim(); let dueDate=document.getElementById('todoDueDate').value; let description=document.getElementById('todoDescription').value.trim(); await addOrUpdateTodo(id,text,description,priority,category,dueDate,date); closeModal(); showToast('Задача сохранена'); });
+  document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{ e.preventDefault(); let date=getTodoDate(); if(!date) return showToast('Выберите дату'); let id=document.getElementById('editTodoId').value; let text=document.getElementById('todoText').value.trim(); if(!text) return; let priority=document.getElementById('todoPriority').value; let category=document.getElementById('todoCategory').value.trim(); let dueDate=document.getElementById('todoDueDate').value; let description=document.getElementById('todoDescription').value.trim(); await addOrUpdateTodo(id,text,description,priority,category,dueDate,date); closeModal(); showToast('Задача сохранена'); });
   window.setTodayDate = function(){ document.getElementById('todoDatePicker').value=new Date().toISOString().split('T')[0]; refreshTodoUI(); };
   window.switchTab = function(tab){ let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn'); if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } else { f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); } closeModal(); };
   
-  function startDataListeners(){
-    if(!currentUser) return;
-    if(unsubscribeTransactions) unsubscribeTransactions();
-    if(unsubscribeTodos) unsubscribeTodos();
-    unsubscribeTransactions = onSnapshot(query(collection(db, "users", currentUser.uid, "transactions")), snap=>{ allTransactions=snap.docs.map(d=>({id:d.id,...d.data()})); refreshFinanceUI(); });
-    unsubscribeTodos = onSnapshot(query(collection(db, "users", currentUser.uid, "todos")), snap=>{ allTodos=snap.docs.map(d=>({id:d.id,...d.data()})); refreshTodoUI(); });
+  // ---------- Модалка авторизации ----------
+  let currentAuthMode = false; // false=login, true=signup
+  function updateAuthUI() {
+    if(currentAuthMode) {
+      document.getElementById('authModalTitle').innerText = 'Создать аккаунт';
+      document.getElementById('authActionBtn').innerText = 'Зарегистрироваться';
+      document.getElementById('toggleAuthText').innerHTML = 'Уже есть аккаунт?';
+      document.getElementById('toggleAuthModeBtn').innerText = 'Войти';
+    } else {
+      document.getElementById('authModalTitle').innerText = 'Вход в аккаунт';
+      document.getElementById('authActionBtn').innerText = 'Войти';
+      document.getElementById('toggleAuthText').innerHTML = 'Нет аккаунта?';
+      document.getElementById('toggleAuthModeBtn').innerText = 'Создать';
+    }
   }
+  document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { currentAuthMode = !currentAuthMode; updateAuthUI(); });
+  document.getElementById('closeAuthModal').addEventListener('click', () => { /* не можем закрыть, т.к. без входа нельзя */ });
   
-  // Слушаем изменения состояния авторизации
+  async function handleAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const errorDiv = document.getElementById('authError');
+    if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
+    errorDiv.classList.add('hidden');
+    try {
+      if(currentAuthMode) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        showToast('Аккаунт создан!');
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast('Добро пожаловать!');
+      }
+      // Успешно – модалка закроется в onAuthStateChanged
+    } catch(err) {
+      errorDiv.innerText = err.message;
+      errorDiv.classList.remove('hidden');
+    }
+  }
+  document.getElementById('authActionBtn').addEventListener('click', handleAuth);
+  
+  // Глобальный слушатель состояния авторизации
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if(user) {
       // Пользователь вошёл
-      authModal.style.display = 'none';
+      setAuthLock(false);
       logoutBtn.classList.remove('hidden');
-      setInterfaceEnabled(true);
-      startDataListeners();
+      attachListeners();
     } else {
-      // Пользователь вышел
-      if(unsubscribeTransactions) unsubscribeTransactions();
-      if(unsubscribeTodos) unsubscribeTodos();
+      // Нет пользователя – показываем модалку входа
+      setAuthLock(true);
+      logoutBtn.classList.add('hidden');
+      detachListeners();
       allTransactions = [];
       allTodos = [];
       refreshFinanceUI();
       refreshTodoUI();
-      logoutBtn.classList.add('hidden');
-      setInterfaceEnabled(false);
-      authModal.style.display = 'flex';
-      // Очищаем поля формы
-      document.getElementById('authEmail').value = '';
-      document.getElementById('authPassword').value = '';
-      document.getElementById('authError').classList.add('hidden');
-      currentAuthMode = false;
-      updateAuthUI();
     }
   });
   
@@ -420,9 +410,12 @@
     document.getElementById('todoDatePicker').addEventListener('change', refreshTodoUI);
     document.getElementById('monthPicker').addEventListener('change', e=>{ currentMonth=e.target.value; refreshFinanceUI(); });
     window.switchTab('finance');
-    // Начальное состояние: интерфейс заблокирован, модалка видна
-    setInterfaceEnabled(false);
+    // Начальная блокировка – модалка уже видна
+    setAuthLock(true);
   });
+  
+  // Кнопка выхода
+  logoutBtn.addEventListener('click', signOut);
 </script>
 </body>
 </html>
