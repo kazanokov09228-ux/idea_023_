@@ -53,6 +53,7 @@
     </div>
   </div>
 
+  <!-- Финансы -->
   <div id="financeTab" class="animate-fade-in">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
       <div class="glass-card p-4 flex justify-between"><div><p class="text-gray-500 text-sm">Баланс</p><p class="text-2xl font-bold" id="balanceDisplay">0 ₽</p></div><span class="text-3xl">💰</span></div>
@@ -61,8 +62,8 @@
     </div>
     <div class="flex justify-between items-center bg-white/50 p-3 rounded-xl mb-6"><span class="text-sm font-medium">📅 Месяц</span><input type="month" id="monthPicker" class="px-4 py-2 border-0 bg-white/80 rounded-xl"></div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-      <div class="glass-heavy p-4 rounded-2xl bg-white/80"><h2 class="font-semibold mb-2">🗂 Расходы по категориям</h2><div class="h-56 w-full"><canvas id="pieChart"></canvas></div><p id="noPieData" class="text-center text-gray-400 hidden text-sm mt-2">Нет данных</p></div>
-      <div class="glass-heavy p-4 rounded-2xl bg-white/80"><h2 class="font-semibold mb-2">📈 Динамика (7d)</h2><div class="h-56 w-full"><canvas id="lineChart"></canvas></div></div>
+      <div class="bg-white/80 p-4 rounded-2xl"><h2 class="font-semibold mb-2">🗂 Расходы по категориям</h2><div class="h-56 w-full"><canvas id="pieChart"></canvas></div><p id="noPieData" class="text-center text-gray-400 hidden text-sm mt-2">Нет данных</p></div>
+      <div class="bg-white/80 p-4 rounded-2xl"><h2 class="font-semibold mb-2">📈 Динамика (7d)</h2><div class="h-56 w-full"><canvas id="lineChart"></canvas></div></div>
     </div>
     <div class="max-w-xl mx-auto mb-8">
       <div class="bg-white/80 p-5 rounded-2xl">
@@ -87,6 +88,7 @@
     <div class="bg-white/80 p-5 rounded-2xl"><h2 class="text-lg font-semibold mb-3">📋 Последние операции</h2><div id="transactionList" class="divide-y divide-gray-100"></div></div>
   </div>
 
+  <!-- Задачи -->
   <div id="todoTab" class="hidden animate-fade-in">
     <div class="bg-white/80 p-4 rounded-2xl">
       <div class="filter-scroll mb-4">
@@ -103,6 +105,7 @@
   </div>
 </div>
 
+<!-- Модалка авторизации (упрощённая, без отдельного linkingPrompt) -->
 <div id="authModal" class="modal-overlay hidden">
   <div class="modal-card">
     <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Вход / Регистрация</h2>
@@ -113,14 +116,11 @@
       <button id="authActionBtn" class="w-full btn-primary-grad text-white py-3 rounded-xl font-bold">Войти</button>
       <p class="text-center text-sm text-gray-500"><span id="toggleAuthText">Нет аккаунта?</span> <button id="toggleAuthModeBtn" class="text-primary font-semibold">Создать</button></p>
     </div>
-    <div id="linkingPrompt" class="hidden space-y-4">
-      <p class="text-gray-700 text-center">У вас есть анонимные данные. Связать с новым аккаунтом?</p>
-      <div class="flex gap-3"><button id="linkAccountBtn" class="flex-1 btn-primary-grad text-white py-2 rounded-xl">Да, связать</button><button id="startFreshBtn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-xl">Нет, начать заново</button></div>
-    </div>
     <div class="mt-4 text-center"><button id="closeAuthModal" class="text-gray-500 text-sm">Закрыть</button></div>
   </div>
 </div>
 
+<!-- Модалка задачи -->
 <div id="todoModal" class="modal-overlay hidden">
   <div class="modal-card"><h2 id="modalTitle" class="text-2xl font-bold mb-4">Новая задача</h2>
     <form id="todoFormModal" class="space-y-4"><input type="hidden" id="editTodoId"><input type="text" id="todoText" required placeholder="Название" class="w-full px-4 py-3 border rounded-xl"><textarea id="todoDescription" rows="2" placeholder="Описание" class="w-full px-4 py-3 border rounded-xl"></textarea>
@@ -132,7 +132,7 @@
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG ====================
+  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ) ====================
   const firebaseConfig = {
     apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
     authDomain: "project-5701820354067340611.firebaseapp.com",
@@ -143,7 +143,7 @@
   };
   
   import { initializeApp } from "firebase/app";
-  import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, linkWithCredential, EmailAuthProvider, signOut as firebaseSignOut, fetchSignInMethodsForEmail } from "firebase/auth";
+  import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, linkWithCredential, EmailAuthProvider, signOut as firebaseSignOut } from "firebase/auth";
   import { getFirestore, collection, addDoc, deleteDoc, doc, query, onSnapshot, writeBatch, getDocs } from "firebase/firestore";
   
   const app = initializeApp(firebaseConfig);
@@ -155,21 +155,21 @@
   let unsubscribeTodos = null;
   let allTransactions = [];
   let allTodos = [];
-  let isLinking = false;
-  let pendingEmail = "", pendingPassword = "";
   
   let currentMonth = new Date().toISOString().slice(0,7);
   let transactionType = 'expense';
   let pieChart, lineChart;
   let todoSort = { field: 'createdAt', order: 'asc' };
   
+  // Вспомогательные функции
   function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
   function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
   
+  // Модалка авторизации
   function showAuthModal() { document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').style.display = 'flex'; }
-  function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').style.display = 'none'; }
+  function hideAuthModal() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').style.display = 'none'; document.getElementById('authError').classList.add('hidden'); }
   
   let currentAuthMode = false; // false=login, true=signup
   function updateAuthUI() {
@@ -187,6 +187,7 @@
   }
   document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { currentAuthMode = !currentAuthMode; updateAuthUI(); });
   document.getElementById('closeAuthModal').addEventListener('click', hideAuthModal);
+  document.getElementById('loginBtn').addEventListener('click', () => { currentAuthMode = false; updateAuthUI(); showAuthModal(); });
   
   async function handleAuth() {
     const email = document.getElementById('authEmail').value.trim();
@@ -194,18 +195,35 @@
     const errorDiv = document.getElementById('authError');
     if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
     errorDiv.classList.add('hidden');
+    
     try {
       if(currentAuthMode) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        showToast('Аккаунт создан');
+        // Регистрация
+        if(auth.currentUser && auth.currentUser.isAnonymous) {
+          // Есть анонимный пользователь - пытаемся привязать
+          const credential = EmailAuthProvider.credential(email, password);
+          await linkWithCredential(auth.currentUser, credential);
+          showToast('Анонимные данные привязаны к новому аккаунту');
+        } else {
+          // Обычная регистрация (создаст нового пользователя, заменив текущего)
+          await createUserWithEmailAndPassword(auth, email, password);
+          showToast('Аккаунт создан');
+        }
         hideAuthModal();
       } else {
+        // Вход
         await signInWithEmailAndPassword(auth, email, password);
         showToast('Добро пожаловать');
         hideAuthModal();
       }
     } catch(err) {
-      errorDiv.innerText = err.message;
+      if(err.code === 'auth/credential-already-in-use') {
+        errorDiv.innerText = 'Этот email уже зарегистрирован. Попробуйте войти.';
+      } else if(err.code === 'auth/email-already-in-use') {
+        errorDiv.innerText = 'Email уже используется.';
+      } else {
+        errorDiv.innerText = err.message;
+      }
       errorDiv.classList.remove('hidden');
     }
   }
@@ -213,46 +231,8 @@
   
   async function signOut() { await firebaseSignOut(auth); showToast('Вы вышли'); }
   document.getElementById('logoutBtn').addEventListener('click', signOut);
-  document.getElementById('loginBtn').addEventListener('click', () => { currentAuthMode = false; updateAuthUI(); showAuthModal(); });
   
-  async function startLinking(email, password) {
-    if(isLinking) return;
-    isLinking = true;
-    try {
-      const credential = EmailAuthProvider.credential(email, password);
-      await linkWithCredential(auth.currentUser, credential);
-      showToast('Анонимные данные привязаны!');
-      hideAuthModal();
-    } catch(err) {
-      if(err.code === 'auth/credential-already-in-use') {
-        if(confirm('Этот email уже зарегистрирован. Войти в него? (текущие данные будут заменены)')) {
-          await signInWithEmailAndPassword(auth, email, password);
-          hideAuthModal();
-        }
-      } else {
-        document.getElementById('authError').innerText = err.message;
-        document.getElementById('authError').classList.remove('hidden');
-      }
-    } finally { isLinking = false; }
-  }
-  document.getElementById('linkAccountBtn').addEventListener('click', () => {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
-    if(email && password) startLinking(email, password);
-    else showToast('Введите email и пароль');
-  });
-  document.getElementById('startFreshBtn').addEventListener('click', async () => {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
-    if(email && password) {
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        hideAuthModal();
-      } catch(err) { alert(err.message); }
-    } else showToast('Введите email и пароль');
-  });
-  
-  // Data functions
+  // Очистка данных
   async function clearAllData() {
     if(!currentUser || !confirm('Удалить все данные?')) return;
     const batch = writeBatch(db);
@@ -263,6 +243,7 @@
   }
   window.clearAllData = clearAllData;
   
+  // Финансы
   async function addTransaction(desc, amount, type, category) {
     if(!currentUser) { showToast('Сначала войдите'); return; }
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
@@ -272,22 +253,6 @@
   }
   async function deleteTransaction(id) { if(confirm('Удалить?')) await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id)); showToast('Удалено'); }
   window.deleteTransaction = deleteTransaction;
-  
-  async function addOrUpdateTodo(id, text, description, priority, category, dueDate, date) {
-    if(!currentUser) return;
-    if(id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, dueDate: dueDate||null, status:'active', createdAt:Date.now(), date });
-  }
-  async function deleteTodo(id) { if(confirm('Удалить задачу?')) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id)); showToast('Удалено'); }
-  async function toggleTodoStatus(id) {
-    const todo = allTodos.find(t=>t.id===id);
-    if(!todo) return;
-    const newStatus = todo.status==='completed'?'active':'completed';
-    await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(collection(db, "users", currentUser.uid, "todos"), {...todo, status:newStatus});
-  }
-  window.deleteTodo = deleteTodo;
-  window.toggleTodoStatus = toggleTodoStatus;
   
   function getFilteredTx() { return allTransactions.filter(tx=>tx.date.startsWith(currentMonth)); }
   function refreshFinanceUI() {
@@ -330,6 +295,23 @@
     else { inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white'; exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
   };
   
+  // Задачи
+  async function addOrUpdateTodo(id, text, description, priority, category, dueDate, date) {
+    if(!currentUser) return;
+    if(id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
+    await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, dueDate: dueDate||null, status:'active', createdAt:Date.now(), date });
+  }
+  async function deleteTodo(id) { if(confirm('Удалить задачу?')) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id)); showToast('Удалено'); }
+  async function toggleTodoStatus(id) {
+    const todo = allTodos.find(t=>t.id===id);
+    if(!todo) return;
+    const newStatus = todo.status==='completed'?'active':'completed';
+    await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
+    await addDoc(collection(db, "users", currentUser.uid, "todos"), {...todo, status:newStatus});
+  }
+  window.deleteTodo = deleteTodo;
+  window.toggleTodoStatus = toggleTodoStatus;
+  
   function getTodoDate() { return document.getElementById('todoDatePicker').value; }
   function getFilteredTodoList() {
     let date=getTodoDate(); if(!date) return [];
@@ -365,7 +347,7 @@
         return `<div class="todo-card-mobile"><div class="flex items-start gap-3"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6"><div class="flex-1"><div class="font-semibold ${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}</div>${t.description?`<div class="text-xs text-gray-500">${escapeHtml(t.description)}</div>`:''}<div class="flex flex-wrap gap-2 mt-2"><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span>${t.category?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>`:''}${t.dueDate?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue?'text-danger font-semibold':''}">📅 ${formatDate(t.dueDate)}${isOverdue?' ⚠️':''}</span>`:''}</div></div><div><button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button></div></div></div>`;
       }).join('');
     } else {
-      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
+      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th></table></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
       let activeTh=document.getElementById(`th-${todoSort.field}`);
       if(activeTh) activeTh.classList.add(todoSort.order==='asc'?'sort-asc':'sort-desc');
@@ -393,12 +375,6 @@
       currentUser = user;
       document.getElementById('logoutBtn').classList.remove('hidden');
       document.getElementById('loginBtn').classList.add('hidden');
-      if(user.isAnonymous) {
-        // Показываем предложение связать аккаунт только если пользователь сам нажал "Войти"
-        // Для автоматического входа не показываем модалку.
-        // Вместо этого покажем кнопку "Привязать аккаунт" где-то, но для простоты предлагаем при нажатии на "Войти"
-        // Но чтобы не мешать, просто ничего не делаем.
-      }
       startDataListeners();
     } else {
       currentUser = null;
@@ -410,7 +386,7 @@
       allTodos = [];
       refreshFinanceUI();
       refreshTodoUI();
-      // Запускаем анонимный вход
+      // Запускаем анонимный вход при отсутствии пользователя
       try {
         await signInAnonymously(auth);
       } catch(e) { console.error(e); }
