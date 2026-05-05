@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -269,16 +270,16 @@
 </div>
 
 <script type="module">
-  // ==================== FIREBASE КОНФИГ (ЗАМЕНИТЕ НА СВОЙ) ====================
+  // ==================== FIREBASE CONFIG (ваши данные) ====================
   const firebaseConfig = {
-  apiKey: "AIzaSyDgHlUVVvn_J0sXOLx4uSWf7kgnhzSmAh8",
-  authDomain: "planning-766c2.firebaseapp.com",
-  projectId: "planning-766c2",
-  storageBucket: "planning-766c2.firebasestorage.app",
-  messagingSenderId: "470169938885",
-  appId: "1:470169938885:web:f010569a6047cbf7aab9ac",
-  measurementId: "G-6TFDHD4Y9L"
-};
+    apiKey: "AIzaSyDgHlUVVvn_J0sXOLx4uSWf7kgnhzSmAh8",
+    authDomain: "planning-766c2.firebaseapp.com",
+    projectId: "planning-766c2",
+    storageBucket: "planning-766c2.firebasestorage.app",
+    messagingSenderId: "470169938885",
+    appId: "1:470169938885:web:f010569a6047cbf7aab9ac",
+    measurementId: "G-6TFDHD4Y9L"
+  };
   
   // Импорт Firebase
   import { initializeApp } from "firebase/app";
@@ -602,13 +603,16 @@
   window.clearAllData = async function() {
     if(!currentUser || !confirm('Удалить ВСЕ финансы и задачи безвозвратно?')) return;
     const batch = writeBatch(db);
-    const transSnap = await collection(db, "users", currentUser.uid, "transactions").get();
+    const transSnap = await getDocs(collection(db, "users", currentUser.uid, "transactions"));
     transSnap.forEach(doc => batch.delete(doc.ref));
-    const todoSnap = await collection(db, "users", currentUser.uid, "todos").get();
+    const todoSnap = await getDocs(collection(db, "users", currentUser.uid, "todos"));
     todoSnap.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
     showToast('Все данные удалены');
   };
+  
+  // Импортируем getDocs для batch-удаления
+  import { getDocs } from "firebase/firestore";
   
   window.switchTab = function(tab) {
     let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn');
@@ -630,11 +634,11 @@
     window.switchTab('finance');
   });
   
-  // Экспорт в глобальный scope для inline onclick
+  // Дополнительно экспортируем для глобального доступа (на всякий случай)
   window.deleteTransaction = deleteTransaction;
   window.toggleTodoStatus = toggleTodoStatus;
   window.deleteTodo = deleteTodo;
-  window.editTodo = (id) => window.editTodo(id);
+  window.editTodo = window.editTodo;
   window.openAddTodoModal = window.openAddTodoModal;
   window.closeModal = window.closeModal;
   window.sortTable = window.sortTable;
