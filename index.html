@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -270,21 +269,20 @@
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG (ваши данные) ====================
+  // ==================== НОВЫЙ FIREBASE КОНФИГ ====================
   const firebaseConfig = {
-    apiKey: "AIzaSyDgHlUVVvn_J0sXOLx4uSWf7kgnhzSmAh8",
-    authDomain: "planning-766c2.firebaseapp.com",
-    projectId: "planning-766c2",
-    storageBucket: "planning-766c2.firebasestorage.app",
-    messagingSenderId: "470169938885",
-    appId: "1:470169938885:web:f010569a6047cbf7aab9ac",
-    measurementId: "G-6TFDHD4Y9L"
+    apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
+    authDomain: "project-5701820354067340611.firebaseapp.com",
+    projectId: "project-5701820354067340611",
+    storageBucket: "project-5701820354067340611.firebasestorage.app",
+    messagingSenderId: "804935519387",
+    appId: "1:804935519387:web:d71bf1995d41d7a9ff8a3e"
   };
   
   // Импорт Firebase
   import { initializeApp } from "firebase/app";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, onSnapshot, writeBatch } from "firebase/firestore";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, query, onSnapshot, writeBatch, getDocs } from "firebase/firestore";
   
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -611,9 +609,6 @@
     showToast('Все данные удалены');
   };
   
-  // Импортируем getDocs для batch-удаления
-  import { getDocs } from "firebase/firestore";
-  
   window.switchTab = function(tab) {
     let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn');
     if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } 
@@ -634,7 +629,7 @@
     window.switchTab('finance');
   });
   
-  // Дополнительно экспортируем для глобального доступа (на всякий случай)
+  // Экспорт в глобальную область
   window.deleteTransaction = deleteTransaction;
   window.toggleTodoStatus = toggleTodoStatus;
   window.deleteTodo = deleteTodo;
