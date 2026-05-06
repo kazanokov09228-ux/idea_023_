@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -36,9 +37,10 @@
     @media (min-width: 640px) { .modal-card { max-width: 450px; } }
     .fab { display: none; position: fixed; bottom: 24px; right: 20px; width: 56px; height: 56px; background: linear-gradient(115deg, #4F46E5, #A855F7); border-radius: 999px; align-items: center; justify-content: center; font-size: 28px; color: white; cursor: pointer; }
     @media (max-width: 640px) { .fab { display: flex; } .desktop-add-btn { display: none; } }
-    .app-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 45; display: none; align-items: center; justify-content: center; }
     .app-content { transition: filter 0.2s; }
     .date-badge { background: #E0E7FF; color: #3730A3; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; display: inline-block; }
+    .sort-asc::after { content: ' ↑'; color: #4F46E5; font-weight: bold; }
+    .sort-desc::after { content: ' ↓'; color: #4F46E5; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -87,12 +89,12 @@
     <div class="bg-white/80 p-5 rounded-2xl"><h2 class="text-lg font-semibold mb-3">📋 Последние операции</h2><div id="transactionList" class="divide-y divide-gray-100"></div></div>
   </div>
 
-  <!-- Задачи - Единый список (без выбора даты) -->
+  <!-- Задачи - Единый список -->
   <div id="todoTab" class="hidden animate-fade-in">
     <div class="bg-white/80 p-4 rounded-2xl">
       <div class="filter-scroll mb-4">
-        <button onclick="filterToday()" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📅 Сегодня</button>
-        <button onclick="showAllTasks()" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📋 Все задачи</button>
+        <button onclick="filterToday()" id="filterTodayBtn" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📅 Сегодня</button>
+        <button onclick="showAllTasks()" id="showAllBtn" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📋 Все задачи</button>
         <input type="text" id="searchInput" placeholder="🔍 Поиск" class="px-4 py-2 border rounded-xl bg-white w-32 text-sm">
         <select id="filterPriority" class="px-3 py-2 border rounded-xl bg-white text-sm">
           <option value="all">Все приоритеты</option><option value="high">🔴 Высокий</option><option value="medium">🟡 Средний</option><option value="low">🔵 Низкий</option>
@@ -129,14 +131,14 @@
     <form id="todoFormModal" class="space-y-4"><input type="hidden" id="editTodoId"><input type="text" id="todoText" required placeholder="Название" class="w-full px-4 py-3 border rounded-xl"><textarea id="todoDescription" rows="2" placeholder="Описание" class="w-full px-4 py-3 border rounded-xl"></textarea>
       <div class="flex flex-col sm:flex-row gap-3"><select id="todoPriority" class="flex-1 px-3 py-2.5 border rounded-xl"><option value="medium">🟡 Средний</option><option value="high">🔴 Высокий</option><option value="low">🔵 Низкий</option></select><input type="text" id="todoCategory" placeholder="Категория" class="flex-1 px-3 py-2.5 border rounded-xl"></div>
       <div><label class="text-sm font-medium">Дата</label><input type="date" id="todoDate" required class="w-full px-4 py-2.5 border rounded-xl"></div>
-      <input type="date" id="todoDueDate" placeholder="Дедлайн (опционально)" class="w-full px-4 py-2.5 border rounded-xl">
+      <div><label class="text-sm font-medium">Дедлайн (опционально)</label><input type="date" id="todoDueDate" class="w-full px-4 py-2.5 border rounded-xl"></div>
       <div class="flex justify-end gap-3"><button type="button" onclick="closeModal()" class="px-5 py-2 border rounded-xl">Отмена</button><button type="submit" class="px-5 py-2 btn-primary-grad text-white rounded-xl">Сохранить</button></div>
     </form>
   </div>
 </div>
 
 <script type="module">
-  // FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ)
+  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ) ====================
   const firebaseConfig = {
     apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
     authDomain: "project-5701820354067340611.firebaseapp.com",
@@ -163,15 +165,14 @@
   let currentMonth = new Date().toISOString().slice(0,7);
   let transactionType = 'expense';
   let pieChart, lineChart;
-  let todoSort = { field: 'date', order: 'desc' }; // сортировка по дате (новые сверху)
-  let filterTodayOnly = false; // показывать только сегодняшние задачи
+  let todoSort = { field: 'date', order: 'desc' };
+  let filterTodayOnly = false;
   
   function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
   function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
   
-  // Блокировка интерфейса до входа
   const authModalElem = document.getElementById('authModal');
   const logoutBtn = document.getElementById('logoutBtn');
   const appContent = document.querySelector('.app-content');
@@ -222,7 +223,7 @@
     detachListeners();
   }
   
-  // Финансы (без изменений)
+  // Финансы
   async function addTransaction(desc, amount, type, category) {
     if(!currentUser) return;
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
@@ -230,7 +231,7 @@
     });
     showToast('✅ Добавлено');
   }
-  async function deleteTransaction(id) { if(confirm('Удалить?')) await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id)); showToast('Удалено'); }
+  async function deleteTransaction(id) { if(confirm('Удалить операцию?')) await deleteDoc(doc(db, "users", currentUser.uid, "transactions", id)); showToast('Удалено'); }
   window.deleteTransaction = deleteTransaction;
   
   function getFilteredTx() { return allTransactions.filter(tx=>tx.date.startsWith(currentMonth)); }
@@ -245,6 +246,7 @@
     if(filtered.length===0) container.innerHTML = '<p class="text-center py-6">📭 Нет операций</p>';
     else container.innerHTML = [...filtered].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(tx=>`
       <div class="flex justify-between py-3"><div><p class="font-medium">${escapeHtml(tx.description)}</p><p class="text-xs text-gray-400">${escapeHtml(tx.category)} • ${formatDate(tx.date)}</p></div><div><span class="font-bold ${tx.type==='income'?'text-success':'text-danger'}">${tx.type==='income'?'+':'-'}${tx.amount.toLocaleString()} ₽</span><button onclick="window.deleteTransaction('${tx.id}')" class="ml-2 text-gray-400 text-xl">✕</button></div></div>`).join('');
+    // Графики
     let expenses = filtered.filter(t=>t.type==='expense');
     let catMap = {}; expenses.forEach(tx=>catMap[tx.category]=(catMap[tx.category]||0)+tx.amount);
     let cats=Object.keys(catMap), vals=Object.values(catMap);
@@ -274,22 +276,40 @@
     else { inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white'; exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
   };
   
-  // ЗАДАЧИ - единый список
+  // ЗАДАЧИ
   async function addOrUpdateTodo(id, text, description, priority, category, date, dueDate) {
     if(!currentUser) return;
     if(id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
     await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, date, dueDate: dueDate||null, status:'active', createdAt:Date.now() });
   }
-  async function deleteTodo(id) { if(confirm('Удалить задачу?')) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id)); showToast('Удалено'); }
-  async function toggleTodoStatus(id) {
+  
+  // УДАЛЕНИЕ ЗАДАЧИ с подтверждением
+  window.deleteTodo = async function(id) {
+    if(!currentUser) { showToast('Сначала войдите'); return; }
+    if(!confirm('Удалить задачу?')) return;
+    try {
+      await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
+      showToast('🗑 Задача удалена');
+    } catch(error) {
+      console.error('Ошибка удаления:', error);
+      showToast('Ошибка удаления: ' + error.message);
+    }
+  };
+  
+  window.toggleTodoStatus = async function(id) {
+    if(!currentUser) return;
     const todo = allTodos.find(t=>t.id===id);
     if(!todo) return;
     const newStatus = todo.status==='completed'?'active':'completed';
-    await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(collection(db, "users", currentUser.uid, "todos"), {...todo, status:newStatus});
-  }
-  window.deleteTodo = deleteTodo;
-  window.toggleTodoStatus = toggleTodoStatus;
+    try {
+      await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
+      await addDoc(collection(db, "users", currentUser.uid, "todos"), {...todo, status:newStatus});
+      showToast(newStatus === 'completed' ? '✅ Завершено' : '🔄 В работе');
+    } catch(error) {
+      console.error(error);
+      showToast('Ошибка изменения статуса');
+    }
+  };
   
   function getFilteredTodoList() {
     let list = allTodos;
@@ -365,7 +385,7 @@
               <th onclick="window.sortTable('category')" id="th-category" class="cursor-pointer">Категория</th>
               <th onclick="window.sortTable('dueDate')" id="th-dueDate" class="cursor-pointer">Дедлайн</th>
               <th class="rounded-r-xl"></th>
-            </tr>
+             </tr>
           </thead>
           <tbody>
             ${filtered.map(t => {
@@ -386,7 +406,7 @@
           </tbody>
         </table>
       `;
-      // Стрелки сортировки
+      // обновление стрелок сортировки
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
       let activeTh = document.getElementById(`th-${todoSort.field}`);
       if(activeTh) activeTh.classList.add(todoSort.order==='asc' ? 'sort-asc' : 'sort-desc');
@@ -445,19 +465,19 @@
     showToast('Задача сохранена');
   });
   
-  // Фильтры
   window.filterToday = function() {
     filterTodayOnly = true;
     refreshTodoUI();
-    // Визуальное выделение кнопки (опционально)
-    document.querySelectorAll('.filter-scroll button').forEach(btn => btn.classList.remove('bg-primary/10', 'text-primary'));
-    event.target.classList.add('bg-primary/10', 'text-primary');
+    document.getElementById('filterTodayBtn').classList.add('bg-primary/10', 'text-primary');
+    document.getElementById('showAllBtn').classList.remove('bg-primary/10', 'text-primary');
+    document.getElementById('showAllBtn').classList.add('bg-gray-100', 'text-gray-700');
   };
   window.showAllTasks = function() {
     filterTodayOnly = false;
     refreshTodoUI();
-    document.querySelectorAll('.filter-scroll button').forEach(btn => btn.classList.remove('bg-primary/10', 'text-primary'));
-    event.target.classList.add('bg-primary/10', 'text-primary');
+    document.getElementById('showAllBtn').classList.add('bg-primary/10', 'text-primary');
+    document.getElementById('filterTodayBtn').classList.remove('bg-primary/10', 'text-primary');
+    document.getElementById('filterTodayBtn').classList.add('bg-gray-100', 'text-gray-700');
   };
   
   // Авторизация
@@ -519,7 +539,6 @@
     document.getElementById('monthPicker').addEventListener('change', e=>{ currentMonth=e.target.value; refreshFinanceUI(); });
     window.switchTab('finance');
     setAuthLock(true);
-    // Устанавливаем сегодняшнюю дату по умолчанию в модалке задачи
     document.getElementById('todoDate').value = new Date().toISOString().slice(0,10);
   });
   
