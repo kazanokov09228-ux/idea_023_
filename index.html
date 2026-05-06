@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>📱 Планер | Финансы + Задачи (Обязательный вход)</title>
+  <title>📱 Планер | Финансы + Задачи (Единый список)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -38,6 +38,7 @@
     @media (max-width: 640px) { .fab { display: flex; } .desktop-add-btn { display: none; } }
     .app-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 45; display: none; align-items: center; justify-content: center; }
     .app-content { transition: filter 0.2s; }
+    .date-badge { background: #E0E7FF; color: #3730A3; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; display: inline-block; }
   </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
     <button id="logoutBtn" class="text-sm bg-white/70 backdrop-blur-sm border px-4 py-2 rounded-xl touch-target hidden">🚪 Выйти</button>
   </div>
 
-  <!-- Финансы -->
+  <!-- Финансы (без изменений) -->
   <div id="financeTab" class="animate-fade-in">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
       <div class="glass-card p-4 flex justify-between"><div><p class="text-gray-500 text-sm">Баланс</p><p class="text-2xl font-bold" id="balanceDisplay">0 ₽</p></div><span class="text-3xl">💰</span></div>
@@ -86,16 +87,20 @@
     <div class="bg-white/80 p-5 rounded-2xl"><h2 class="text-lg font-semibold mb-3">📋 Последние операции</h2><div id="transactionList" class="divide-y divide-gray-100"></div></div>
   </div>
 
-  <!-- Задачи -->
+  <!-- Задачи - Единый список (без выбора даты) -->
   <div id="todoTab" class="hidden animate-fade-in">
     <div class="bg-white/80 p-4 rounded-2xl">
       <div class="filter-scroll mb-4">
-        <button onclick="setTodayDate()" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📅 Сегодня</button>
-        <input type="date" id="todoDatePicker" class="px-3 py-2 border rounded-xl bg-white text-sm">
+        <button onclick="filterToday()" class="bg-primary/10 text-primary px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📅 Сегодня</button>
+        <button onclick="showAllTasks()" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-xl text-sm font-medium whitespace-nowrap">📋 Все задачи</button>
         <input type="text" id="searchInput" placeholder="🔍 Поиск" class="px-4 py-2 border rounded-xl bg-white w-32 text-sm">
-        <select id="filterPriority" class="px-3 py-2 border rounded-xl bg-white text-sm"><option value="all">Все приоритеты</option><option value="high">🔴 Высокий</option><option value="medium">🟡 Средний</option><option value="low">🔵 Низкий</option></select>
-        <select id="filterStatus" class="px-3 py-2 border rounded-xl bg-white text-sm"><option value="all">Все статусы</option><option value="active">Активные</option><option value="completed">Завершённые</option></select>
-        <button onclick="openAddTodoModal()" class="desktop-add-btn bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-xl font-semibold shadow-md">➕ Новая задача</button>
+        <select id="filterPriority" class="px-3 py-2 border rounded-xl bg-white text-sm">
+          <option value="all">Все приоритеты</option><option value="high">🔴 Высокий</option><option value="medium">🟡 Средний</option><option value="low">🔵 Низкий</option>
+        </select>
+        <select id="filterStatus" class="px-3 py-2 border rounded-xl bg-white text-sm">
+          <option value="all">Все статусы</option><option value="active">Активные</option><option value="completed">Завершённые</option>
+        </select>
+        <button onclick="openAddTodoModal()" class="desktop-add-btn bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-xl font-semibold shadow-md whitespace-nowrap">➕ Новая задача</button>
       </div>
       <div id="todoListContainer"></div>
     </div>
@@ -103,7 +108,7 @@
   </div>
 </div>
 
-<!-- Модалка авторизации (обязательная) -->
+<!-- Модалка авторизации -->
 <div id="authModal" class="modal-overlay" style="display: flex;">
   <div class="modal-card">
     <h2 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-4">Вход / Регистрация</h2>
@@ -123,14 +128,15 @@
   <div class="modal-card"><h2 id="modalTitle" class="text-2xl font-bold mb-4">Новая задача</h2>
     <form id="todoFormModal" class="space-y-4"><input type="hidden" id="editTodoId"><input type="text" id="todoText" required placeholder="Название" class="w-full px-4 py-3 border rounded-xl"><textarea id="todoDescription" rows="2" placeholder="Описание" class="w-full px-4 py-3 border rounded-xl"></textarea>
       <div class="flex flex-col sm:flex-row gap-3"><select id="todoPriority" class="flex-1 px-3 py-2.5 border rounded-xl"><option value="medium">🟡 Средний</option><option value="high">🔴 Высокий</option><option value="low">🔵 Низкий</option></select><input type="text" id="todoCategory" placeholder="Категория" class="flex-1 px-3 py-2.5 border rounded-xl"></div>
-      <input type="date" id="todoDueDate" class="w-full px-4 py-2.5 border rounded-xl">
+      <div><label class="text-sm font-medium">Дата</label><input type="date" id="todoDate" required class="w-full px-4 py-2.5 border rounded-xl"></div>
+      <input type="date" id="todoDueDate" placeholder="Дедлайн (опционально)" class="w-full px-4 py-2.5 border rounded-xl">
       <div class="flex justify-end gap-3"><button type="button" onclick="closeModal()" class="px-5 py-2 border rounded-xl">Отмена</button><button type="submit" class="px-5 py-2 btn-primary-grad text-white rounded-xl">Сохранить</button></div>
     </form>
   </div>
 </div>
 
 <script type="module">
-  // ==================== FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ) ====================
+  // FIREBASE CONFIG (ЗАМЕНИТЕ НА ВАШ)
   const firebaseConfig = {
     apiKey: "AIzaSyD_g-A3Rvn0itU4t5FaeGcbiG981mC3NUA",
     authDomain: "project-5701820354067340611.firebaseapp.com",
@@ -157,38 +163,36 @@
   let currentMonth = new Date().toISOString().slice(0,7);
   let transactionType = 'expense';
   let pieChart, lineChart;
-  let todoSort = { field: 'createdAt', order: 'asc' };
-  
-  // DOM элементы
-  const authModal = document.getElementById('authModal');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const appContent = document.querySelector('.app-content');
+  let todoSort = { field: 'date', order: 'desc' }; // сортировка по дате (новые сверху)
+  let filterTodayOnly = false; // показывать только сегодняшние задачи
   
   function showToast(msg) { let t = document.querySelector('.toast'); if(t) t.remove(); t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(()=> t.remove(), 2100); }
   function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]) || ''; }
   function formatDate(d) { if(!d) return '—'; let [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
   function isMobile() { return window.innerWidth < 640; }
   
-  // Блокировка/разблокировка интерфейса
+  // Блокировка интерфейса до входа
+  const authModalElem = document.getElementById('authModal');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const appContent = document.querySelector('.app-content');
+  
   function setAuthLock(locked) {
     if(locked) {
-      authModal.style.display = 'flex';
+      authModalElem.style.display = 'flex';
       appContent.style.filter = 'blur(4px)';
       appContent.style.pointerEvents = 'none';
     } else {
-      authModal.style.display = 'none';
+      authModalElem.style.display = 'none';
       appContent.style.filter = 'none';
       appContent.style.pointerEvents = 'auto';
     }
   }
   
-  // Очистка подписок
   function detachListeners() {
     if(unsubscribeTransactions) { unsubscribeTransactions(); unsubscribeTransactions = null; }
     if(unsubscribeTodos) { unsubscribeTodos(); unsubscribeTodos = null; }
   }
   
-  // Запуск слушателей для текущего пользователя
   function attachListeners() {
     if(!currentUser) return;
     detachListeners();
@@ -196,16 +200,15 @@
     unsubscribeTransactions = onSnapshot(transQuery, (snapshot) => {
       allTransactions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       refreshFinanceUI();
-    }, (error) => { console.error("Ошибка загрузки транзакций:", error); showToast("Ошибка загрузки финансов"); });
+    }, (error) => { console.error(error); showToast("Ошибка загрузки финансов"); });
     
     const todosQuery = query(collection(db, "users", currentUser.uid, "todos"));
     unsubscribeTodos = onSnapshot(todosQuery, (snapshot) => {
       allTodos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       refreshTodoUI();
-    }, (error) => { console.error("Ошибка загрузки задач:", error); showToast("Ошибка загрузки задач"); });
+    }, (error) => { console.error(error); showToast("Ошибка загрузки задач"); });
   }
   
-  // Выход
   async function signOut() {
     await firebaseSignOut(auth);
     showToast('Вы вышли');
@@ -219,7 +222,7 @@
     detachListeners();
   }
   
-  // Финансы
+  // Финансы (без изменений)
   async function addTransaction(desc, amount, type, category) {
     if(!currentUser) return;
     await addDoc(collection(db, "users", currentUser.uid, "transactions"), {
@@ -242,7 +245,6 @@
     if(filtered.length===0) container.innerHTML = '<p class="text-center py-6">📭 Нет операций</p>';
     else container.innerHTML = [...filtered].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(tx=>`
       <div class="flex justify-between py-3"><div><p class="font-medium">${escapeHtml(tx.description)}</p><p class="text-xs text-gray-400">${escapeHtml(tx.category)} • ${formatDate(tx.date)}</p></div><div><span class="font-bold ${tx.type==='income'?'text-success':'text-danger'}">${tx.type==='income'?'+':'-'}${tx.amount.toLocaleString()} ₽</span><button onclick="window.deleteTransaction('${tx.id}')" class="ml-2 text-gray-400 text-xl">✕</button></div></div>`).join('');
-    // Графики
     let expenses = filtered.filter(t=>t.type==='expense');
     let catMap = {}; expenses.forEach(tx=>catMap[tx.category]=(catMap[tx.category]||0)+tx.amount);
     let cats=Object.keys(catMap), vals=Object.values(catMap);
@@ -272,11 +274,11 @@
     else { inc.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-success text-white'; exp.className='flex-1 py-3 rounded-xl font-semibold shadow-sm bg-gray-100 text-gray-700'; }
   };
   
-  // Задачи
-  async function addOrUpdateTodo(id, text, description, priority, category, dueDate, date) {
+  // ЗАДАЧИ - единый список
+  async function addOrUpdateTodo(id, text, description, priority, category, date, dueDate) {
     if(!currentUser) return;
     if(id) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id));
-    await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, dueDate: dueDate||null, status:'active', createdAt:Date.now(), date });
+    await addDoc(collection(db, "users", currentUser.uid, "todos"), { text, description, priority, category, date, dueDate: dueDate||null, status:'active', createdAt:Date.now() });
   }
   async function deleteTodo(id) { if(confirm('Удалить задачу?')) await deleteDoc(doc(db, "users", currentUser.uid, "todos", id)); showToast('Удалено'); }
   async function toggleTodoStatus(id) {
@@ -289,13 +291,15 @@
   window.deleteTodo = deleteTodo;
   window.toggleTodoStatus = toggleTodoStatus;
   
-  function getTodoDate() { return document.getElementById('todoDatePicker').value; }
   function getFilteredTodoList() {
-    let date=getTodoDate(); if(!date) return [];
-    let list=allTodos.filter(t=>t.date===date);
-    let search=document.getElementById('searchInput').value.toLowerCase();
-    let prio=document.getElementById('filterPriority').value;
-    let stat=document.getElementById('filterStatus').value;
+    let list = allTodos;
+    if(filterTodayOnly) {
+      const today = new Date().toISOString().slice(0,10);
+      list = list.filter(t => t.date === today);
+    }
+    let search = document.getElementById('searchInput').value.toLowerCase();
+    let prio = document.getElementById('filterPriority').value;
+    let stat = document.getElementById('filterStatus').value;
     return list.filter(t=>{
       if(search && !(t.text.toLowerCase().includes(search)||(t.description||'').toLowerCase().includes(search))) return false;
       if(prio!=='all' && t.priority!==prio) return false;
@@ -303,44 +307,161 @@
       if(stat==='active' && t.status==='completed') return false;
       return true;
     }).sort((a,b)=>{
-      let f=todoSort.field;
+      let f = todoSort.field;
       let av, bv;
       if(f==='dueDate'){ av=a.dueDate||'9999-12-31'; bv=b.dueDate||'9999-12-31'; }
       else if(f==='priority'){ let p={high:3,medium:2,low:1}; av=p[a.priority]||0; bv=p[b.priority]||0; }
       else if(f==='text'){ av=a.text.toLowerCase(); bv=b.text.toLowerCase(); }
       else if(f==='category'){ av=(a.category||'').toLowerCase(); bv=(b.category||'').toLowerCase(); }
+      else if(f==='date'){ av=a.date||'1970-01-01'; bv=b.date||'1970-01-01'; }
       else { av=a.createdAt||''; bv=b.createdAt||''; }
       return (av<bv ? (todoSort.order==='asc'?-1:1) : (av>bv ? (todoSort.order==='asc'?1:-1) : 0));
     });
   }
+  
   function renderTodo() {
-    let container=document.getElementById('todoListContainer');
-    let filtered=getFilteredTodoList();
-    let todayStr=new Date().toISOString().slice(0,10);
-    if(filtered.length===0){ container.innerHTML='<div class="text-center py-10">✨ Нет задач</div>'; return; }
-    if(isMobile()){
-      container.innerHTML=filtered.map(t=>{
-        let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed';
-        return `<div class="todo-card-mobile"><div class="flex items-start gap-3"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6"><div class="flex-1"><div class="font-semibold ${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}</div>${t.description?`<div class="text-xs text-gray-500">${escapeHtml(t.description)}</div>`:''}<div class="flex flex-wrap gap-2 mt-2"><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span>${t.category?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>`:''}${t.dueDate?`<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue?'text-danger font-semibold':''}">📅 ${formatDate(t.dueDate)}${isOverdue?' ⚠️':''}</span>`:''}</div></div><div><button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button></div></div></div>`;
+    const container = document.getElementById('todoListContainer');
+    const filtered = getFilteredTodoList();
+    const todayStr = new Date().toISOString().slice(0,10);
+    if(filtered.length === 0) {
+      container.innerHTML = '<div class="text-center py-10">✨ Нет задач</div>';
+      return;
+    }
+    if(isMobile()) {
+      container.innerHTML = filtered.map(t => {
+        const isOverdue = (t.dueDate && t.dueDate < todayStr && t.status !== 'completed');
+        const priorityText = {high:'Высокий',medium:'Средний',low:'Низкий'}[t.priority];
+        return `
+          <div class="todo-card-mobile">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" ${t.status==='completed' ? 'checked' : ''} onchange="window.toggleTodoStatus('${t.id}')" class="mt-1 w-6 h-6">
+              <div class="flex-1">
+                <div class="font-semibold ${t.status==='completed' ? 'line-through opacity-70' : ''}">${escapeHtml(t.text)}</div>
+                ${t.description ? `<div class="text-xs text-gray-500 mt-1">${escapeHtml(t.description)}</div>` : ''}
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${priorityText}</span>
+                  <span class="date-badge">📅 ${formatDate(t.date)}</span>
+                  ${t.category ? `<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">📁 ${escapeHtml(t.category)}</span>` : ''}
+                  ${t.dueDate ? `<span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs ${isOverdue ? 'text-danger font-semibold' : ''}">⏰ ${formatDate(t.dueDate)}${isOverdue ? ' ⚠️' : ''}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="window.editTodo('${t.id}')" class="text-gray-400 text-lg px-2">✎</button>
+                <button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 text-lg px-2">✕</button>
+              </div>
+            </div>
+          </div>
+        `;
       }).join('');
     } else {
-      container.innerHTML=`<table class="w-full"><thead><tr class="bg-gray-50"><th class="p-2">✅</th><th onclick="window.sortTable('text')" id="th-text">Задача</th><th onclick="window.sortTable('priority')" id="th-priority">Приоритет</th><th onclick="window.sortTable('category')" id="th-category">Категория</th><th onclick="window.sortTable('dueDate')" id="th-dueDate">Срок</th><th></th><tr></thead><tbody>${filtered.map(t=>{let isOverdue=t.dueDate && t.dueDate<todayStr && t.status!=='completed'; return `<tr><td class="p-2"><input type="checkbox" ${t.status==='completed'?'checked':''} onchange="window.toggleTodoStatus('${t.id}')"></td><td class="${t.status==='completed'?'line-through opacity-70':''}">${escapeHtml(t.text)}${t.description?`<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>`:''}</td><td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${t.priority==='high'?'Высокий':t.priority==='medium'?'Средний':'Низкий'}</span></td><td>${escapeHtml(t.category)||'—'}</td><td class="${isOverdue?'text-danger font-semibold':''}">${t.dueDate?formatDate(t.dueDate)+(isOverdue?' ⚠️':''):'—'}</td><td><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td></tr>`}).join('')}</tbody></table>`;
+      container.innerHTML = `
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="p-2 rounded-l-xl">✅</th>
+              <th onclick="window.sortTable('text')" id="th-text" class="cursor-pointer">Задача</th>
+              <th onclick="window.sortTable('date')" id="th-date" class="cursor-pointer">Дата</th>
+              <th onclick="window.sortTable('priority')" id="th-priority" class="cursor-pointer">Приоритет</th>
+              <th onclick="window.sortTable('category')" id="th-category" class="cursor-pointer">Категория</th>
+              <th onclick="window.sortTable('dueDate')" id="th-dueDate" class="cursor-pointer">Дедлайн</th>
+              <th class="rounded-r-xl"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(t => {
+              const isOverdue = (t.dueDate && t.dueDate < todayStr && t.status !== 'completed');
+              const priorityText = {high:'Высокий',medium:'Средний',low:'Низкий'}[t.priority];
+              return `
+                <tr class="border-b">
+                  <td class="p-2"><input type="checkbox" ${t.status==='completed' ? 'checked' : ''} onchange="window.toggleTodoStatus('${t.id}')" class="w-5 h-5"></td>
+                  <td class="${t.status==='completed' ? 'line-through opacity-70' : ''}">${escapeHtml(t.text)}${t.description ? `<div class="text-xs text-gray-400">${escapeHtml(t.description)}</div>` : ''}</td>
+                  <td class="text-sm">${formatDate(t.date)}</td>
+                  <td><span class="priority-${t.priority} px-2 py-0.5 rounded-full text-xs">${priorityText}</span></td>
+                  <td class="text-sm">${escapeHtml(t.category) || '—'}</td>
+                  <td class="text-sm ${isOverdue ? 'text-danger font-semibold' : ''}">${t.dueDate ? formatDate(t.dueDate) + (isOverdue ? ' ⚠️' : '') : '—'}</td>
+                  <td class="text-right"><button onclick="window.editTodo('${t.id}')" class="text-gray-400 px-2">✎</button><button onclick="window.deleteTodo('${t.id}')" class="text-gray-400 px-2">✕</button></td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+      // Стрелки сортировки
       document.querySelectorAll('.todo-table th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
-      let activeTh=document.getElementById(`th-${todoSort.field}`);
-      if(activeTh) activeTh.classList.add(todoSort.order==='asc'?'sort-asc':'sort-desc');
+      let activeTh = document.getElementById(`th-${todoSort.field}`);
+      if(activeTh) activeTh.classList.add(todoSort.order==='asc' ? 'sort-asc' : 'sort-desc');
     }
   }
-  function refreshTodoUI(){ renderTodo(); }
-  window.sortTable = function(field){ if(todoSort.field===field) todoSort.order=todoSort.order==='asc'?'desc':'asc'; else {todoSort.field=field; todoSort.order='asc';} refreshTodoUI(); };
-  window.editTodo = function(id){ let todo=allTodos.find(t=>t.id===id); if(!todo) return; document.getElementById('modalTitle').innerText='Редактировать'; document.getElementById('editTodoId').value=id; document.getElementById('todoText').value=todo.text; document.getElementById('todoDescription').value=todo.description||''; document.getElementById('todoPriority').value=todo.priority; document.getElementById('todoCategory').value=todo.category||''; document.getElementById('todoDueDate').value=todo.dueDate||''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
-  window.openAddTodoModal = function(){ document.getElementById('modalTitle').innerText='Новая задача'; document.getElementById('editTodoId').value=''; document.getElementById('todoText').value=''; document.getElementById('todoDescription').value=''; document.getElementById('todoPriority').value='medium'; document.getElementById('todoCategory').value=''; document.getElementById('todoDueDate').value=''; document.getElementById('todoModal').classList.remove('hidden'); document.getElementById('todoModal').style.display='flex'; };
-  window.closeModal = function(){ document.getElementById('todoModal').classList.add('hidden'); document.getElementById('todoModal').style.display='none'; };
-  document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{ e.preventDefault(); let date=getTodoDate(); if(!date) return showToast('Выберите дату'); let id=document.getElementById('editTodoId').value; let text=document.getElementById('todoText').value.trim(); if(!text) return; let priority=document.getElementById('todoPriority').value; let category=document.getElementById('todoCategory').value.trim(); let dueDate=document.getElementById('todoDueDate').value; let description=document.getElementById('todoDescription').value.trim(); await addOrUpdateTodo(id,text,description,priority,category,dueDate,date); closeModal(); showToast('Задача сохранена'); });
-  window.setTodayDate = function(){ document.getElementById('todoDatePicker').value=new Date().toISOString().split('T')[0]; refreshTodoUI(); };
-  window.switchTab = function(tab){ let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn'); if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); } else { f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); } closeModal(); };
   
-  // ---------- Модалка авторизации ----------
-  let currentAuthMode = false; // false=login, true=signup
+  function refreshTodoUI(){ renderTodo(); }
+  window.sortTable = function(field) {
+    if(todoSort.field===field) todoSort.order = todoSort.order==='asc'?'desc':'asc';
+    else { todoSort.field = field; todoSort.order = 'asc'; }
+    refreshTodoUI();
+  };
+  window.editTodo = function(id){
+    let todo = allTodos.find(t=>t.id===id);
+    if(!todo) return;
+    document.getElementById('modalTitle').innerText='Редактировать';
+    document.getElementById('editTodoId').value=id;
+    document.getElementById('todoText').value=todo.text;
+    document.getElementById('todoDescription').value=todo.description||'';
+    document.getElementById('todoPriority').value=todo.priority;
+    document.getElementById('todoCategory').value=todo.category||'';
+    document.getElementById('todoDate').value=todo.date;
+    document.getElementById('todoDueDate').value=todo.dueDate||'';
+    document.getElementById('todoModal').classList.remove('hidden');
+    document.getElementById('todoModal').style.display='flex';
+  };
+  window.openAddTodoModal = function(){
+    document.getElementById('modalTitle').innerText='Новая задача';
+    document.getElementById('editTodoId').value='';
+    document.getElementById('todoText').value='';
+    document.getElementById('todoDescription').value='';
+    document.getElementById('todoPriority').value='medium';
+    document.getElementById('todoCategory').value='';
+    document.getElementById('todoDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('todoDueDate').value='';
+    document.getElementById('todoModal').classList.remove('hidden');
+    document.getElementById('todoModal').style.display='flex';
+  };
+  window.closeModal = function(){
+    document.getElementById('todoModal').classList.add('hidden');
+    document.getElementById('todoModal').style.display='none';
+  };
+  document.getElementById('todoFormModal').addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    let id = document.getElementById('editTodoId').value;
+    let text = document.getElementById('todoText').value.trim();
+    if(!text) return showToast('Введите название');
+    let description = document.getElementById('todoDescription').value.trim();
+    let priority = document.getElementById('todoPriority').value;
+    let category = document.getElementById('todoCategory').value.trim();
+    let date = document.getElementById('todoDate').value;
+    if(!date) return showToast('Выберите дату');
+    let dueDate = document.getElementById('todoDueDate').value;
+    await addOrUpdateTodo(id, text, description, priority, category, date, dueDate);
+    closeModal();
+    showToast('Задача сохранена');
+  });
+  
+  // Фильтры
+  window.filterToday = function() {
+    filterTodayOnly = true;
+    refreshTodoUI();
+    // Визуальное выделение кнопки (опционально)
+    document.querySelectorAll('.filter-scroll button').forEach(btn => btn.classList.remove('bg-primary/10', 'text-primary'));
+    event.target.classList.add('bg-primary/10', 'text-primary');
+  };
+  window.showAllTasks = function() {
+    filterTodayOnly = false;
+    refreshTodoUI();
+    document.querySelectorAll('.filter-scroll button').forEach(btn => btn.classList.remove('bg-primary/10', 'text-primary'));
+    event.target.classList.add('bg-primary/10', 'text-primary');
+  };
+  
+  // Авторизация
+  let currentAuthMode = false;
   function updateAuthUI() {
     if(currentAuthMode) {
       document.getElementById('authModalTitle').innerText = 'Создать аккаунт';
@@ -355,8 +476,7 @@
     }
   }
   document.getElementById('toggleAuthModeBtn').addEventListener('click', () => { currentAuthMode = !currentAuthMode; updateAuthUI(); });
-  document.getElementById('closeAuthModal').addEventListener('click', () => { /* не можем закрыть, т.к. без входа нельзя */ });
-  
+  document.getElementById('closeAuthModal').addEventListener('click', () => {});
   async function handleAuth() {
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
@@ -364,14 +484,8 @@
     if(!email || !password) { errorDiv.innerText = 'Заполните поля'; errorDiv.classList.remove('hidden'); return; }
     errorDiv.classList.add('hidden');
     try {
-      if(currentAuthMode) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        showToast('Аккаунт создан!');
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast('Добро пожаловать!');
-      }
-      // Успешно – модалка закроется в onAuthStateChanged
+      if(currentAuthMode) await createUserWithEmailAndPassword(auth, email, password);
+      else await signInWithEmailAndPassword(auth, email, password);
     } catch(err) {
       errorDiv.innerText = err.message;
       errorDiv.classList.remove('hidden');
@@ -379,16 +493,13 @@
   }
   document.getElementById('authActionBtn').addEventListener('click', handleAuth);
   
-  // Глобальный слушатель состояния авторизации
   onAuthStateChanged(auth, (user) => {
-    currentUser = user;
     if(user) {
-      // Пользователь вошёл
+      currentUser = user;
       setAuthLock(false);
       logoutBtn.classList.remove('hidden');
       attachListeners();
     } else {
-      // Нет пользователя – показываем модалку входа
       setAuthLock(true);
       logoutBtn.classList.add('hidden');
       detachListeners();
@@ -399,22 +510,26 @@
     }
   });
   
-  // Инициализация интерфейса
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('monthPicker').value = currentMonth;
-    document.getElementById('todoDatePicker').value = new Date().toISOString().split('T')[0];
     window.setType('expense');
     document.getElementById('searchInput').addEventListener('input', refreshTodoUI);
     document.getElementById('filterPriority').addEventListener('change', refreshTodoUI);
     document.getElementById('filterStatus').addEventListener('change', refreshTodoUI);
-    document.getElementById('todoDatePicker').addEventListener('change', refreshTodoUI);
     document.getElementById('monthPicker').addEventListener('change', e=>{ currentMonth=e.target.value; refreshFinanceUI(); });
     window.switchTab('finance');
-    // Начальная блокировка – модалка уже видна
     setAuthLock(true);
+    // Устанавливаем сегодняшнюю дату по умолчанию в модалке задачи
+    document.getElementById('todoDate').value = new Date().toISOString().slice(0,10);
   });
   
-  // Кнопка выхода
+  window.switchTab = function(tab) {
+    let f=document.getElementById('financeTab'), t=document.getElementById('todoTab'), btnF=document.getElementById('tabFinanceBtn'), btnT=document.getElementById('tabTodoBtn');
+    if(tab==='finance'){ f.classList.remove('hidden'); t.classList.add('hidden'); btnF.classList.add('tab-active'); btnF.classList.remove('tab-inactive'); btnT.classList.add('tab-inactive'); btnT.classList.remove('tab-active'); }
+    else{ f.classList.add('hidden'); t.classList.remove('hidden'); btnT.classList.add('tab-active'); btnT.classList.remove('tab-inactive'); btnF.classList.add('tab-inactive'); btnF.classList.remove('tab-active'); refreshTodoUI(); }
+    closeModal();
+  };
+  
   logoutBtn.addEventListener('click', signOut);
 </script>
 </body>
